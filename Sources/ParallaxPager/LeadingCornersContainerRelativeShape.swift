@@ -3,7 +3,7 @@ import SwiftUI
 public struct LeadingCornersContainerRelativeShape: Shape {
     var leadingCornerRadius: CGFloat = 32
     
-    func path(in rect: CGRect) -> Path {
+    public func path(in rect: CGRect) -> Path {
         // Get the path from ContainerRelativeShape for the environment's rounding
         let containerPath = ContainerRelativeShape().path(in: rect)
         

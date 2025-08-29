@@ -24,7 +24,7 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
         self.backdrop = backdrop
     }
     
-    var body: some View {
+    public var body: some View {
         GeometryReader { geometry in
             let containerWidth = geometry.size.width
             let containerHeight = geometry.size.height
