@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "ParallaxPager",
+    name: "wydUI",
     platforms: [
         .iOS(.v26) // Specify the minimum iOS version here
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "ParallaxPager",
-            targets: ["ParallaxPager"]
+            name: "wydUI",
+            targets: ["wydUI"]
         ),
     ],
     dependencies: [
@@ -22,7 +22,7 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "ParallaxPager",
+            name: "wydUI",
             dependencies: [
                 .product(name: "SwiftUIIntrospect", package: "swiftui-introspect"),
             ]
