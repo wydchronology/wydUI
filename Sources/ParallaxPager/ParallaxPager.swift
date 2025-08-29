@@ -3,7 +3,7 @@ import SwiftUIIntrospect
 
 /// A horizontally paged parallax pager view, with continuous parallax effect as you swipe.
 public struct ParallaxPager<Content: View, Backdrop: View>: View {
-    var startAt: Int = 0
+    @Binding var page: Int
     var disabled: Bool = false
     
     let content: () -> Content
@@ -13,12 +13,12 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
     private var scrollPosition: ScrollPosition = .init(idType: Int.self)
     
     public init(
-        startAt: Int = 0,
+        page: Binding<Int>,
         disabled: Bool = false,
         @ViewBuilder content: @escaping () -> Content,
         @ViewBuilder backdrop: @escaping () -> Backdrop = { Color.black.opacity(0.6) }
     ) {
-        self.startAt = startAt
+        self._page = page
         self.disabled = disabled
         self.content = content
         self.backdrop = backdrop
@@ -43,6 +43,11 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
                                             .id(index)
                                             .clipShape(LeadingCornersContainerRelativeShape())
                                             .offset(x: translationOffset)
+                                            .onScrollVisibilityChange(threshold: 0.9) { isVisible in
+                                                if isVisible {
+                                                    page = index
+                                                }
+                                            }
                                             .scrollTransition(
                                                 .interactive(timingCurve: .linear),
                                                 axis: .horizontal
@@ -73,7 +78,7 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
                     scrollView.bounces = false
                 }
                 .onAppear {
-                    scrollPosition.scrollTo(id: startAt)
+                    scrollPosition.scrollTo(id: page)
                 }
                 .scrollPosition($scrollPosition)
                 .scrollTargetBehavior(.paging)
@@ -84,7 +89,7 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
 }
 
 #Preview {
-    ParallaxPager(startAt: 1) {
+    ParallaxPager(page: .constant(1)) {
         Color.pink
             .ignoresSafeArea()
             .overlay(
