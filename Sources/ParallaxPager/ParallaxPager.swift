@@ -80,6 +80,11 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
                 .onAppear {
                     scrollPosition.scrollTo(id: page)
                 }
+                .onChange(of: page) { _, newValue in
+                    withAnimation {
+                        scrollPosition.scrollTo(id: page)
+                    }
+                }
                 .scrollPosition($scrollPosition)
                 .scrollTargetBehavior(.paging)
                 .scrollDisabled(disabled)
@@ -89,7 +94,9 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
 }
 
 #Preview {
-    ParallaxPager(page: .constant(1)) {
+    @Previewable @State var page = 1
+    
+    ParallaxPager(page: $page) {
         Color.pink
             .ignoresSafeArea()
             .overlay(
@@ -114,6 +121,10 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
                     .tag(2)
             }
             .badge("!")
+        }
+        .task {
+            try? await Task.sleep(for: .seconds(4))
+            page = 2
         }
         
         NavigationStack {
