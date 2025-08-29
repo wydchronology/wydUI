@@ -1,30 +1,27 @@
 import SwiftUI
 import SwiftUIIntrospect
 
-/// A horizontally paged parallax pager view, with continuous parallax effect as you swipe.
-public struct ParallaxPager<Content: View, Backdrop: View>: View {
-    @Binding var page: Int
+/// Implementation of ParallaxPager using a ScrollView with .paging behavior
+struct ScrollViewPager<Content: View, Backdrop: View>: ParallaxPager {
+    var page: Binding<Int>
     var disabled: Bool = false
     
     let content: () -> Content
     let backdrop: () -> Backdrop
     
-    @State
-    private var scrollPosition: ScrollPosition = .init(idType: Int.self)
-    
-    public init(
-        page: Binding<Int>,
-        disabled: Bool = false,
-        @ViewBuilder content: @escaping () -> Content,
-        @ViewBuilder backdrop: @escaping () -> Backdrop = { Color.black.opacity(0.6) }
-    ) {
-        self._page = page
-        self.disabled = disabled
-        self.content = content
-        self.backdrop = backdrop
+    // Internal binding to convert Int <-> Int? for .scrollPosition(id:)
+    private var selectedPage: Binding<Int?> {
+        Binding<Int?>(
+            get: { page.wrappedValue },
+            set: { newValue in
+                if let value = newValue {
+                    page.wrappedValue = value
+                }
+            }
+        )
     }
     
-    public var body: some View {
+    var body: some View {
         GeometryReader { geometry in
             let containerWidth = geometry.size.width
             let containerHeight = geometry.size.height
@@ -43,11 +40,6 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
                                             .id(index)
                                             .clipShape(LeadingCornersContainerRelativeShape())
                                             .offset(x: translationOffset)
-                                            .onScrollVisibilityChange(threshold: 0.9) { isVisible in
-                                                if isVisible {
-                                                    page = index
-                                                }
-                                            }
                                             .scrollTransition(
                                                 .interactive(timingCurve: .linear),
                                                 axis: .horizontal
@@ -77,63 +69,10 @@ public struct ParallaxPager<Content: View, Backdrop: View>: View {
                 .introspect(.scrollView, on: .iOS(.v26)) { scrollView in
                     scrollView.bounces = false
                 }
-                .onAppear {
-                    scrollPosition.scrollTo(id: page)
-                }
-                .onChange(of: page) { _, newValue in
-                    withAnimation {
-                        scrollPosition.scrollTo(id: page)
-                    }
-                }
-                .scrollPosition($scrollPosition)
+                .scrollPosition(id: selectedPage)
                 .scrollTargetBehavior(.paging)
                 .scrollDisabled(disabled)
             }
-        }
-    }
-}
-
-#Preview {
-    @Previewable @State var page = 1
-    
-    ParallaxPager(page: $page) {
-        Color.pink
-            .ignoresSafeArea()
-            .overlay(
-                Text("Hello, World!")
-                    .font(.largeTitle).foregroundStyle(.white)
-            )
-        
-        TabView {
-            Tab("Received", systemImage: "tray.and.arrow.down.fill") {
-                Text("received")
-                    .tag(0)
-            }
-            .badge(2)
-            
-            Tab("Sent", systemImage: "tray.and.arrow.up.fill") {
-                Text("sent")
-                    .tag(1)
-            }
-            
-            Tab("Account", systemImage: "person.crop.circle.fill") {
-                Text("account")
-                    .tag(2)
-            }
-            .badge("!")
-        }
-        .task {
-            try? await Task.sleep(for: .seconds(4))
-            page = 2
-        }
-        
-        NavigationStack {
-            Color.orange
-                .overlay(
-                    Text("Hello, World 3!")
-                        .font(.largeTitle).foregroundStyle(.white)
-                )
-                .navigationTitle("Title")
         }
     }
 }
