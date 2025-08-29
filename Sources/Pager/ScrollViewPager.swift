@@ -74,5 +74,6 @@ struct ScrollViewPager<Content: View, Backdrop: View>: ParallaxPager {
                 .scrollDisabled(disabled)
             }
         }
+        .animation(.default, value: page.wrappedValue)
     }
 }

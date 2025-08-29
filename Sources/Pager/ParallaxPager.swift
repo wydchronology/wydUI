@@ -92,9 +92,7 @@ public struct ParallaxPagerView<Content: View, Backdrop: View>: ParallaxPager {
             }
             .task {
                 try? await Task.sleep(for: .seconds(4))
-                withAnimation {
-                    page = 2
-                }
+                page = 2
             }
             
             NavigationStack {
