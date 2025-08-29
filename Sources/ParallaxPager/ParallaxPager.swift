@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftUIIntrospect
 
 /// A horizontally paged parallax pager view, with continuous parallax effect as you swipe.
-struct ParallaxPager<Content: View, Backdrop: View>: View {
+public struct ParallaxPager<Content: View, Backdrop: View>: View {
     var startAt: Int = 0
     var disabled: Bool = false
     
@@ -12,7 +12,7 @@ struct ParallaxPager<Content: View, Backdrop: View>: View {
     @State
     private var scrollPosition: ScrollPosition = .init(idType: Int.self)
     
-    init(
+    public init(
         startAt: Int = 0,
         disabled: Bool = false,
         @ViewBuilder content: @escaping () -> Content,

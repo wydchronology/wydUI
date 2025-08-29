@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct LeadingCornersContainerRelativeShape: Shape {
+public struct LeadingCornersContainerRelativeShape: Shape {
     var leadingCornerRadius: CGFloat = 32
     
     func path(in rect: CGRect) -> Path {
