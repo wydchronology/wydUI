@@ -16,7 +16,11 @@ public struct ActionStrip<Data: Hashable, Label: View, Trigger: View, Sheet: Vie
         let containerPadding: CGFloat
         let spacing: CGFloat
 
-        public init(tint: Color, containerPadding: CGFloat, spacing: CGFloat) {
+        public init(
+            tint: Color = .clear,
+            containerPadding: CGFloat = .zero,
+            spacing: CGFloat = 5
+        ) {
             self.tint = tint
             self.containerPadding = containerPadding
             self.spacing = spacing
@@ -28,20 +32,13 @@ public struct ActionStrip<Data: Hashable, Label: View, Trigger: View, Sheet: Vie
         action: @escaping (Data) -> Void,
         @ViewBuilder label: @escaping (Data) -> Label,
         isExpanded: Binding<Bool>,
-        @ViewBuilder trigger: @escaping (String, Namespace.ID) -> Trigger = { transitionSourceID, namespace in
-            Image(systemName: "plus")
-                .imageScale(.large)
-                .matchedTransitionSource(id: transitionSourceID, in: namespace)
-                .frame(width: 30, height: 30)
+        @ViewBuilder trigger: @escaping (String, Namespace.ID) -> Trigger = { _, _ in
+            EmptyView()
         },
         @ViewBuilder sheet: @escaping () -> Sheet = {
             EmptyView()
         },
-        config: StyleConfig = .init(
-            tint: .clear,
-            containerPadding: 5,
-            spacing: 10,
-        ),
+        config: StyleConfig = .init(),
     ) {
         self.items = items
 
@@ -73,7 +70,7 @@ public struct ActionStrip<Data: Hashable, Label: View, Trigger: View, Sheet: Vie
                         .tint(config.tint)
                         .buttonStyle(.plain)
                     }
-                    
+
                     Button(action: {
                         isExpanded.wrappedValue = true
                     }) {
@@ -101,11 +98,11 @@ public struct ActionStrip<Data: Hashable, Label: View, Trigger: View, Sheet: Vie
 #Preview {
     @Previewable @State var selectedEmoji: String? = nil
     @Previewable @State var isSheetPresented = false
-    
+
     ZStack {
         Color.cyan.opacity(0.2)
             .edgesIgnoringSafeArea(.all)
-        
+
         VStack(spacing: 20) {
             ActionStrip(
                 items: [
@@ -143,14 +140,14 @@ public struct ActionStrip<Data: Hashable, Label: View, Trigger: View, Sheet: Vie
                     spacing: 5,
                 )
             )
-            
+
             Text("Choose an Emoji")
                 .font(.largeTitle)
-            
+
             if let emoji = selectedEmoji {
                 VStack(spacing: 10) {
                     Text("You chose \(emoji)")
-                    
+
                     Button(action: {
                         selectedEmoji = nil
                     }) {
