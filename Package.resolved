@@ -1,6 +1,15 @@
 {
-  "originHash" : "34c66877b481ce25590fc3ac387201076dbdad30aaec28e9d360c864facabb75",
+  "originHash" : "d92c8fce4f907c1643244b51327457480b12e124e1b54086981bab963d29bd93",
   "pins" : [
+    {
+      "identity" : "emojikit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/niklasamslgruber/EmojiKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "b57c28995b8e398d31be0c8b07de0917b0ebb84b"
+      }
+    },
     {
       "identity" : "swiftui-introspect",
       "kind" : "remoteSourceControl",
