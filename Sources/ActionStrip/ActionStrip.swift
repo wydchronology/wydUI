@@ -31,7 +31,7 @@ public struct ActionStrip<Data: Hashable, Label: View, Trigger: View, Sheet: Vie
         items: [Data],
         action: @escaping (Data) -> Void,
         @ViewBuilder label: @escaping (Data) -> Label,
-        isExpanded: Binding<Bool>,
+        isExpanded: Binding<Bool> = .constant(false),
         @ViewBuilder trigger: @escaping (String, Namespace.ID) -> Trigger = { _, _ in
             EmptyView()
         },
