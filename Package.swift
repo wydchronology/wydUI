@@ -17,7 +17,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/siteline/swiftui-introspect", from: "1.4.0-beta.4"),
-        .package(url: "https://github.com/niklasamslgruber/EmojiKit", branch: "main"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -26,7 +25,6 @@ let package = Package(
             name: "wydUI",
             dependencies: [
                 .product(name: "SwiftUIIntrospect", package: "swiftui-introspect"),
-                .product(name: "EmojiKit", package: "EmojiKit")
             ]
         ),
     ],
