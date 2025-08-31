@@ -1,3 +1,2 @@
-# ParallaxPager
-
-Instagram-like horizontal parallax pager for top-level navigation
+# wyd UI
+User interface library by WYD Chronology Co.
