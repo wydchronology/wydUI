@@ -76,9 +76,11 @@ struct CalendarMonthNavigationHeader: View {
 
             Spacer()
 
-            HStack(spacing: buttonSpacing) {
-                previousButtonBuilder(decrementMonth)
-                nextButtonBuilder(incrementMonth)
+            if !isMonthYearPickerPresented {
+                HStack(spacing: buttonSpacing) {
+                    previousButtonBuilder(decrementMonth)
+                    nextButtonBuilder(incrementMonth)
+                }
             }
         }
     }

@@ -28,8 +28,9 @@ struct CalendarMonthLabel: View {
                     .font(.system(.subheadline, design: .rounded, weight: .semibold))
                     .foregroundColor(labelColor)
 
-                Image(systemName: isActive ? "chevron.down" : "chevron.right")
+                Image(systemName: "chevron.right")
                     .imageScale(.small)
+                    .rotationEffect(isActive ? .degrees(90) : .degrees(0))
                     .frame(width: iconSize, height: iconSize)
             }
         }
