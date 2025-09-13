@@ -7,6 +7,7 @@ struct CalendarDatePicker: View {
 
     private let navigationHeaderBuilder: (Binding<Date>, Binding<Bool>) -> AnyView
     private let monthYearPickerBuilder: (Binding<Date>, Binding<Bool>) -> AnyView
+    private let weekDayLabelBuilder: () -> AnyView
 
     let spacing: CGFloat
 
@@ -27,10 +28,14 @@ struct CalendarDatePicker: View {
                 )
             )
         },
-        spacing: CGFloat = 10
+        weekDayLabelBuilder: @escaping () -> AnyView = {
+            AnyView(CalendarWeekDayLabel())
+        },
+        spacing: CGFloat = 20
     ) {
         self.navigationHeaderBuilder = navigationHeaderBuilder
         self.monthYearPickerBuilder = monthYearPickerBuilder
+        self.weekDayLabelBuilder = weekDayLabelBuilder
         self.spacing = spacing
     }
 
@@ -38,17 +43,21 @@ struct CalendarDatePicker: View {
         GeometryReader { proxy in
             VStack(spacing: spacing) {
                 navigationHeaderBuilder($currentMonth, $isMonthYearPickerPresented)
-                
+
                 if isMonthYearPickerPresented {
                     monthYearPickerBuilder($currentMonth, $isMonthYearPickerPresented)
                         .frame(maxWidth: .infinity)
                         .frame(height: proxy.size.height)
                 } else {
-                    // Placeholder for calendar grid (to be implemented)
-                    Rectangle()
-                        .fill(Color.red)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: proxy.size.height)
+                    VStack(spacing: spacing) {
+                        weekDayLabelBuilder()
+
+                        // Placeholder for calendar grid (to be implemented)
+                        Rectangle()
+                            .fill(Color.red)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: proxy.size.height)
                 }
             }
         }
