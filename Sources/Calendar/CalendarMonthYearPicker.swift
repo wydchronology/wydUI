@@ -2,14 +2,14 @@ import SwiftUI
 import UIKit
 
 struct CalendarMonthYearPicker: View {
-    @Binding var month: Date
+    @Binding var selection: Date
     @Binding var isPresented: Bool
     var mode: UIDatePicker.Mode = .yearAndMonth
     var style: UIDatePickerStyle = .wheels
 
     var body: some View {
         UIDatePickerRepresentable(
-            selection: $month,
+            selection: $selection,
             mode: mode,
             style: style
         )

@@ -1,60 +1,99 @@
 import SwiftUI
 
-struct CalendarDatePicker: View {
-    @State private var selectedDate: Date = .init()
-    @State private var currentMonth: Date = .init()
+struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: View>: View {
+    @Binding var selection: Date
+    @Binding var displayedDate: Date
+
     @State private var isMonthYearPickerPresented: Bool = false
 
-    private let navigationHeaderBuilder: (Binding<Date>, Binding<Bool>) -> AnyView
-    private let monthYearPickerBuilder: (Binding<Date>, Binding<Bool>) -> AnyView
-    private let weekDayLabelBuilder: () -> AnyView
+    private let toolbar: (Binding<Date>, Binding<Bool>) -> Toolbar
+    private let monthYearPicker: (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker
+    private let weekDayLabel: (String, Date) -> WeekDayLabel
+    private let page: (Date) -> AnyView
+    private let cell: (Date, Bool) -> AnyView
 
-    let spacing: CGFloat
+    let verticalSpacing: CGFloat
+    let calendar: Calendar
 
     init(
-        navigationHeaderBuilder: @escaping (Binding<Date>, Binding<Bool>) -> AnyView = { currentMonthBinding, isPickerPresentedBinding in
-            AnyView(
-                CalendarMonthNavigationHeader(
-                    month: currentMonthBinding,
-                    isMonthYearPickerPresented: isPickerPresentedBinding
-                )
+        verticalSpacing: CGFloat = 20,
+        calendar: Calendar = Calendar.autoupdatingCurrent,
+        selection: Binding<Date>,
+        displayedDate: Binding<Date>,
+        @ViewBuilder toolbar: @escaping (Binding<Date>, Binding<Bool>) -> Toolbar = { displayedDate, isPresented in
+            CalendarDatePickerToolbar(
+                selection: displayedDate,
+                isMonthYearPickerPresented: isPresented
             )
         },
-        monthYearPickerBuilder: @escaping (Binding<Date>, Binding<Bool>) -> AnyView = { monthBinding, isPresentedBinding in
-            AnyView(
-                CalendarMonthYearPicker(
-                    month: monthBinding,
-                    isPresented: isPresentedBinding
-                )
+        @ViewBuilder monthYearPicker: @escaping (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker = { selection, isPresented in
+            CalendarMonthYearPicker(
+                selection: selection,
+                isPresented: isPresented
             )
         },
-        weekDayLabelBuilder: @escaping () -> AnyView = {
-            AnyView(CalendarWeekDayLabel())
+        @ViewBuilder weekDayLabel: @escaping (String, Date) -> WeekDayLabel = { day, _ in
+            Text(day)
+                .font(.system(.caption, design: .rounded, weight: .medium))
+                .foregroundColor(.secondary)
         },
-        spacing: CGFloat = 20
+        page: ((Date) -> AnyView)? = nil,
+        cell: ((Date, Bool) -> AnyView)? = nil
     ) {
-        self.navigationHeaderBuilder = navigationHeaderBuilder
-        self.monthYearPickerBuilder = monthYearPickerBuilder
-        self.weekDayLabelBuilder = weekDayLabelBuilder
-        self.spacing = spacing
+        self.verticalSpacing = verticalSpacing
+        self.calendar = calendar
+
+        _selection = selection
+        _displayedDate = displayedDate
+
+        self.toolbar = toolbar
+        self.monthYearPicker = monthYearPicker
+        self.weekDayLabel = weekDayLabel
+
+        // Capture the binding locally to avoid capturing `self` in the escaping closure.
+        let selectionBinding = selection
+        self.cell = cell ?? { date, isSelected in
+            AnyView(
+                CalendarDateCell(date: date, isSelected: isSelected) {
+                    selectionBinding.wrappedValue = date
+                }
+            )
+        }
+
+        // Capture the binding locally to avoid capturing `self` in the escaping closure.
+        let cellContent = self.cell
+        self.page = page ?? { month in
+            AnyView(
+                CalendarMonthGrid(month: month) { _, day in
+                    if let day = day {
+                        let isSelected = calendar.isDate(day, inSameDayAs: selection.wrappedValue)
+                        cellContent(day, isSelected)
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+        }
     }
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: spacing) {
-                navigationHeaderBuilder($currentMonth, $isMonthYearPickerPresented)
+            VStack(spacing: verticalSpacing) {
+                toolbar($displayedDate, $isMonthYearPickerPresented)
 
                 if isMonthYearPickerPresented {
-                    monthYearPickerBuilder($currentMonth, $isMonthYearPickerPresented)
+                    monthYearPicker($displayedDate, $isMonthYearPickerPresented)
                         .frame(maxWidth: .infinity)
                         .frame(height: proxy.size.height)
                 } else {
-                    VStack(spacing: spacing) {
-                        weekDayLabelBuilder()
+                    VStack(spacing: verticalSpacing) {
+                        CalendarWeekDays(selection: selection) { day, date in
+                            weekDayLabel(day, date)
+                        }
 
-                        // Placeholder for calendar grid (to be implemented)
-                        Rectangle()
-                            .fill(Color.red)
+                        CalendarMonthPager(selection: $displayedDate) { month in
+                            page(month)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: proxy.size.height)
@@ -65,7 +104,14 @@ struct CalendarDatePicker: View {
 }
 
 #Preview {
-    CalendarDatePicker()
-        .frame(height: 300)
-        .padding()
+    @Previewable @State var selection = Date()
+    @Previewable @State var displayedDate = Date()
+
+    CalendarDatePicker(
+        selection: $selection,
+        displayedDate: $displayedDate
+    )
+    .frame(height: 300)
+    .padding()
+    .tint(.green) // Example of tinting from outside
 }

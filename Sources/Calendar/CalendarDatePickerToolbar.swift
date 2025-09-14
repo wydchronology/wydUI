@@ -1,85 +1,80 @@
 import SwiftUI
 
-struct CalendarMonthNavigationHeader: View {
-    @Binding var month: Date
+struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View {
+    @Binding var selection: Date
     @Binding var isMonthYearPickerPresented: Bool
-    let monthLabelBuilder: (Date, String, Binding<Bool>) -> AnyView
-    let previousButtonBuilder: (@escaping () -> Void) -> AnyView
-    let nextButtonBuilder: (@escaping () -> Void) -> AnyView
+
+    let label: (Date, String, Binding<Bool>) -> Label
+    let previous: (@escaping () -> Void) -> Previous
+    let next: (@escaping () -> Void) -> Next
 
     var buttonSpacing: CGFloat = 20
 
     init(
-        month: Binding<Date>,
+        selection: Binding<Date>,
         isMonthYearPickerPresented: Binding<Bool> = .constant(false),
-        monthLabelBuilder: @escaping (Date, String, Binding<Bool>) -> AnyView = { _, formattedLabel, isPresentedBinding in
-            AnyView(
-                CalendarMonthLabel(
-                    formattedLabel: formattedLabel,
-                    isActive: isPresentedBinding.wrappedValue,
-                    action: {
-                        withAnimation(.interactiveSpring(duration: 0.3)) {
-                            isPresentedBinding.wrappedValue.toggle()
-                        }
-                    },
-                    labelColor: .primary
-                )
+        @ViewBuilder label: @escaping (Date, String, Binding<Bool>) -> Label = { _, formattedLabel, isPresentedBinding in
+            CalendarMonthLabel(
+                formattedLabel: formattedLabel,
+                isActive: isPresentedBinding.wrappedValue,
+                action: {
+                    withAnimation(.interactiveSpring(duration: 0.3)) {
+                        isPresentedBinding.wrappedValue.toggle()
+                    }
+                },
+                labelColor: .primary
             )
         },
-        previousButtonBuilder: @escaping (@escaping () -> Void) -> AnyView = { action in
-            AnyView(
-                Button(action: action) {
-                    Image(systemName: "chevron.left")
-                        .imageScale(.large)
-                }
-                .buttonStyle(.borderless)
-            )
+        @ViewBuilder previous: @escaping (@escaping () -> Void) -> Previous = { action in
+            Button(action: action) {
+                Image(systemName: "chevron.left")
+                    .imageScale(.large)
+            }
+            .buttonStyle(.borderless)
         },
-        nextButtonBuilder: @escaping (@escaping () -> Void) -> AnyView = { action in
-            AnyView(
-                Button(action: action) {
-                    Image(systemName: "chevron.right")
-                        .imageScale(.large)
-                }
-                .buttonStyle(.borderless)
-            )
+        @ViewBuilder next: @escaping (@escaping () -> Void) -> Next = { action in
+            Button(action: action) {
+                Image(systemName: "chevron.right")
+                    .imageScale(.large)
+            }
+            .buttonStyle(.borderless)
         }
     ) {
-        _month = month
+        _selection = selection
         _isMonthYearPickerPresented = isMonthYearPickerPresented
-        self.monthLabelBuilder = monthLabelBuilder
-        self.previousButtonBuilder = previousButtonBuilder
-        self.nextButtonBuilder = nextButtonBuilder
+        self.label = label
+        self.previous = previous
+        self.next = next
     }
 
     private var monthYearLabel: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: month)
+        return formatter.string(from: selection)
     }
 
     private func incrementMonth() {
         withAnimation(.interactiveSpring(duration: 0.3)) {
-            month = Calendar.current.date(byAdding: .month, value: 1, to: month) ?? month
+            selection = Calendar.current.date(byAdding: .month, value: 1, to: selection) ?? selection
         }
     }
 
     private func decrementMonth() {
         withAnimation(.interactiveSpring(duration: 0.3)) {
-            month = Calendar.current.date(byAdding: .month, value: -1, to: month) ?? month
+            selection = Calendar.current.date(byAdding: .month, value: -1, to: selection) ?? selection
         }
     }
 
     var body: some View {
         HStack(spacing: .zero) {
-            monthLabelBuilder(month, monthYearLabel, $isMonthYearPickerPresented)
+            label(selection, monthYearLabel, $isMonthYearPickerPresented)
 
             Spacer()
 
             if !isMonthYearPickerPresented {
                 HStack(spacing: buttonSpacing) {
-                    previousButtonBuilder(decrementMonth)
-                    nextButtonBuilder(incrementMonth)
+                    previous(decrementMonth)
+                    next(incrementMonth)
                 }
             }
         }
@@ -130,8 +125,8 @@ struct CalendarMonthNavigationHeader: View {
         .tint(.orange)
 
         // CalendarMonthNavigationHeader with custom tint
-        CalendarMonthNavigationHeader(
-            month: $previewMonth,
+        CalendarDatePickerToolbar(
+            selection: $previewMonth,
             isMonthYearPickerPresented: $isPickerPresented
         )
         .tint(.purple)
