@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CalendarMonthGrid<DayView: View>: View {
+public struct CalendarMonthGrid<DayView: View>: View {
     let month: Date
     let dayViewBuilder: (Int?, Date?) -> DayView
 
@@ -29,7 +29,7 @@ struct CalendarMonthGrid<DayView: View>: View {
         return weeksNeeded * 7
     }
 
-    var body: some View {
+    public var body: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: verticalSpacing) {
             ForEach(0 ..< totalDaysInGrid, id: \.self) { dayIndex in
                 let calendar = Calendar.current

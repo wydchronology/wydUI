@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View {
+public struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View {
     @Binding var selection: Date
     @Binding var isMonthYearPickerPresented: Bool
 
@@ -10,7 +10,7 @@ struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View 
 
     var buttonSpacing: CGFloat = 20
 
-    init(
+    public init(
         selection: Binding<Date>,
         isMonthYearPickerPresented: Binding<Bool> = .constant(false),
         @ViewBuilder label: @escaping (Date, String, Binding<Bool>) -> Label = { _, formattedLabel, isPresentedBinding in
@@ -65,7 +65,7 @@ struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View 
         }
     }
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: .zero) {
             Spacer()
             label(selection, monthYearLabel, $isMonthYearPickerPresented)

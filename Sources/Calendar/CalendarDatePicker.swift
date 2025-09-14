@@ -1,12 +1,11 @@
 import SwiftUI
 
-struct CalendarDatePickerContext {
+public struct CalendarDatePickerContext {
     let selection: Date
     let displayedDate: Date
-    let cellSize: CGFloat
 }
 
-struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: View>: View {
+public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: View>: View {
     @Binding var selection: Date
     @Binding var displayedDate: Date
 
@@ -17,15 +16,13 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
     private let cell: (Date, CalendarDatePickerContext) -> AnyView
 
     let verticalSpacing: CGFloat
-    let cellSize: CGFloat
     let calendar: Calendar
 
     @State
     private var isMonthYearPickerPresented: Bool = false
 
-    init(
+    public init(
         verticalSpacing: CGFloat = 20,
-        cellSize: CGFloat = 40,
         calendar: Calendar = Calendar.autoupdatingCurrent,
         selection: Binding<Date>,
         displayedDate: Binding<Date>,
@@ -52,7 +49,6 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
         cell: ((Date, CalendarDatePickerContext) -> AnyView)? = nil
     ) {
         self.verticalSpacing = verticalSpacing
-        self.cellSize = cellSize
         self.calendar = calendar
 
         _selection = selection
@@ -83,17 +79,16 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
                 CalendarMonthGrid(month: context.displayedDate) { _, day in
                     if let day = day {
                         cellContent(day, context)
-                            .frame(width: context.cellSize, height: context.cellSize)
                     } else {
                         Color.clear
-                            .frame(width: context.cellSize, height: context.cellSize)
                     }
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
             )
         }
     }
 
-    var body: some View {
+    public var body: some View {
         GeometryReader { proxy in
             VStack(spacing: verticalSpacing) {
                 toolbar($displayedDate, $isMonthYearPickerPresented)
@@ -106,7 +101,6 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
                         let context = CalendarDatePickerContext(
                             selection: selection,
                             displayedDate: displayedDate,
-                            cellSize: cellSize
                         )
 
                         CalendarWeekDays(selection: selection) { day, _ in
@@ -117,7 +111,6 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
                             let context = CalendarDatePickerContext(
                                 selection: selection,
                                 displayedDate: activelyDisplayedDate,
-                                cellSize: cellSize
                             )
                             page(context)
                         }
@@ -137,8 +130,26 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
 
     CalendarDatePicker(
         selection: $selection,
-        displayedDate: $displayedDate
+        displayedDate: $displayedDate,
+        cell: { date, _ in
+            AnyView(
+                CalendarDateCell(
+                    date: date,
+                    selection: selection,
+                    indicator: { _ in
+                        if Bool.random() {
+                            Circle()
+                                .fill(Color.accentColor)
+                                .frame(width: 5, height: 5)
+                        }
+                    }
+                ) {
+                    selection = date
+                }
+            )
+        }
     )
-    .frame(height: 300)
+    .frame(height: 450)
+    .padding()
     .tint(Color(UIColor.brown)) // Example of tinting from outside
 }

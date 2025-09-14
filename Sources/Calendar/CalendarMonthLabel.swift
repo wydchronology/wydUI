@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct CalendarMonthLabel: View {
+public struct CalendarMonthLabel: View {
     let formattedLabel: String
     let isActive: Bool
     let action: () -> Void
     let labelColor: Color?
     let iconSize: CGFloat
 
-    init(
+    public init(
         formattedLabel: String,
         isActive: Bool,
         action: @escaping () -> Void,
@@ -31,7 +31,7 @@ struct CalendarMonthLabel: View {
         }
     }
 
-    var body: some View {
+    public var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
                 label

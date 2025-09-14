@@ -1,12 +1,12 @@
 import SwiftUI
 import UIKit
 
-struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
+public struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
     let content: (Date) -> Content
     @Binding var selection: Date
     let calendar: Calendar
 
-    init(
+    public init(
         calendar: Calendar = .autoupdatingCurrent,
         selection: Binding<Date>,
         @ViewBuilder content: @escaping (Date) -> Content
@@ -16,7 +16,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
         self.content = content
     }
 
-    func makeUIViewController(context: Context) -> UIPageViewController {
+    public func makeUIViewController(context: Context) -> UIPageViewController {
         let pageViewController = UIPageViewController(
             transitionStyle: .scroll,
             navigationOrientation: .horizontal,
@@ -36,7 +36,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
         return pageViewController
     }
 
-    func updateUIViewController(_ pageViewController: UIPageViewController, context: Context) {
+    public func updateUIViewController(_ pageViewController: UIPageViewController, context: Context) {
         // Update parent to access the content
         context.coordinator.parent = self
 
@@ -57,11 +57,11 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
         }
     }
 
-    func makeCoordinator() -> Coordinator {
+    public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
-    class Coordinator: NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+    public class Coordinator: NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
         var parent: CalendarMonthPager
         private let calendar = Calendar.autoupdatingCurrent
         private let referenceDate: Date
@@ -90,7 +90,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
 
         // MARK: - UIPageViewControllerDataSource
 
-        func pageViewController(_: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        public func pageViewController(_: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
             guard let hostingController = viewController as? UIHostingController<Content> else { return nil }
 
             let currentMonthOffset = hostingController.view.tag
@@ -98,7 +98,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
             return createPage(for: previousDate)
         }
 
-        func pageViewController(_: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        public func pageViewController(_: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
             guard let hostingController = viewController as? UIHostingController<Content> else { return nil }
 
             let currentMonthOffset = hostingController.view.tag
@@ -108,7 +108,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
 
         // MARK: - UIPageViewControllerDelegate
 
-        func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating _: Bool, previousViewControllers _: [UIViewController], transitionCompleted completed: Bool) {
+        public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating _: Bool, previousViewControllers _: [UIViewController], transitionCompleted completed: Bool) {
             guard completed,
                   let currentViewController = pageViewController.viewControllers?.first,
                   let hostingController = currentViewController as? UIHostingController<Content> else { return }
