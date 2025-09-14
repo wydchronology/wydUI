@@ -71,6 +71,7 @@ struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View 
             label(selection, monthYearLabel, $isMonthYearPickerPresented)
 
             Spacer()
+                .frame(maxWidth: .infinity)
 
             if !isMonthYearPickerPresented {
                 HStack(spacing: buttonSpacing) {
