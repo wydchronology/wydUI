@@ -28,14 +28,14 @@ struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View 
         @ViewBuilder previous: @escaping (@escaping () -> Void) -> Previous = { action in
             Button(action: action) {
                 Image(systemName: "chevron.left")
-                    .imageScale(.large)
+                    .font(.system(.body, design: .rounded, weight: .semibold))
             }
             .buttonStyle(.borderless)
         },
         @ViewBuilder next: @escaping (@escaping () -> Void) -> Next = { action in
             Button(action: action) {
                 Image(systemName: "chevron.right")
-                    .imageScale(.large)
+                    .font(.system(.body, design: .rounded, weight: .semibold))
             }
             .buttonStyle(.borderless)
         }
@@ -67,6 +67,7 @@ struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View 
 
     var body: some View {
         HStack(spacing: .zero) {
+            Spacer()
             label(selection, monthYearLabel, $isMonthYearPickerPresented)
 
             Spacer()
@@ -76,6 +77,7 @@ struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View 
                     previous(decrementMonth)
                     next(incrementMonth)
                 }
+                Spacer()
             }
         }
     }

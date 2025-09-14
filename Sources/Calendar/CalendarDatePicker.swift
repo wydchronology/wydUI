@@ -1,22 +1,31 @@
 import SwiftUI
 
+struct CalendarDatePickerContext {
+    let selection: Date
+    let displayedDate: Date
+    let cellSize: CGFloat
+}
+
 struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: View>: View {
     @Binding var selection: Date
     @Binding var displayedDate: Date
 
-    @State private var isMonthYearPickerPresented: Bool = false
-
     private let toolbar: (Binding<Date>, Binding<Bool>) -> Toolbar
     private let monthYearPicker: (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker
-    private let weekDayLabel: (String, Date) -> WeekDayLabel
-    private let page: (Date) -> AnyView
-    private let cell: (Date, Bool) -> AnyView
+    private let dayOfWeekLabel: (String, CalendarDatePickerContext) -> WeekDayLabel
+    private let page: (CalendarDatePickerContext) -> AnyView
+    private let cell: (Date, CalendarDatePickerContext) -> AnyView
 
     let verticalSpacing: CGFloat
+    let cellSize: CGFloat
     let calendar: Calendar
+
+    @State
+    private var isMonthYearPickerPresented: Bool = false
 
     init(
         verticalSpacing: CGFloat = 20,
+        cellSize: CGFloat = 40,
         calendar: Calendar = Calendar.autoupdatingCurrent,
         selection: Binding<Date>,
         displayedDate: Binding<Date>,
@@ -32,15 +41,18 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
                 isPresented: isPresented
             )
         },
-        @ViewBuilder weekDayLabel: @escaping (String, Date) -> WeekDayLabel = { day, _ in
+        @ViewBuilder dayOfWeekLabel: @escaping (String, CalendarDatePickerContext) -> WeekDayLabel = { day, _ in
             Text(day)
                 .font(.system(.caption, design: .rounded, weight: .medium))
                 .foregroundColor(.secondary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         },
-        page: ((Date) -> AnyView)? = nil,
-        cell: ((Date, Bool) -> AnyView)? = nil
+        page: ((CalendarDatePickerContext) -> AnyView)? = nil,
+        cell: ((Date, CalendarDatePickerContext) -> AnyView)? = nil
     ) {
         self.verticalSpacing = verticalSpacing
+        self.cellSize = cellSize
         self.calendar = calendar
 
         _selection = selection
@@ -48,13 +60,17 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
 
         self.toolbar = toolbar
         self.monthYearPicker = monthYearPicker
-        self.weekDayLabel = weekDayLabel
+        self.dayOfWeekLabel = dayOfWeekLabel
 
         // Capture the binding locally to avoid capturing `self` in the escaping closure.
         let selectionBinding = selection
-        self.cell = cell ?? { date, isSelected in
+        self.cell = cell ?? { date, context in
             AnyView(
-                CalendarDateCell(date: date, isSelected: isSelected) {
+                CalendarDateCell(
+                    calendar: calendar,
+                    date: date,
+                    selection: context.selection
+                ) {
                     selectionBinding.wrappedValue = date
                 }
             )
@@ -62,14 +78,15 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
 
         // Capture the binding locally to avoid capturing `self` in the escaping closure.
         let cellContent = self.cell
-        self.page = page ?? { month in
+        self.page = page ?? { context in
             AnyView(
-                CalendarMonthGrid(month: month) { _, day in
+                CalendarMonthGrid(month: context.displayedDate) { _, day in
                     if let day = day {
-                        let isSelected = calendar.isDate(day, inSameDayAs: selection.wrappedValue)
-                        cellContent(day, isSelected)
+                        cellContent(day, context)
+                            .frame(width: context.cellSize, height: context.cellSize)
                     } else {
                         Color.clear
+                            .frame(width: context.cellSize, height: context.cellSize)
                     }
                 }
             )
@@ -83,17 +100,23 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
 
                 if isMonthYearPickerPresented {
                     monthYearPicker($displayedDate, $isMonthYearPickerPresented)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: proxy.size.height)
+                        .frame(width: proxy.size.width, height: proxy.size.height)
                 } else {
+                    let context = CalendarDatePickerContext(
+                        selection: selection,
+                        displayedDate: displayedDate,
+                        cellSize: cellSize
+                    )
+
                     VStack(spacing: verticalSpacing) {
-                        CalendarWeekDays(selection: selection) { day, date in
-                            weekDayLabel(day, date)
+                        CalendarWeekDays(selection: selection) { day, _ in
+                            dayOfWeekLabel(day, context)
                         }
 
-                        CalendarMonthPager(selection: $displayedDate) { month in
-                            page(month)
+                        CalendarMonthPager(selection: $displayedDate) { _ in
+                            page(context)
                         }
+                        .frame(maxHeight: .infinity, alignment: .top)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: proxy.size.height)
@@ -112,6 +135,5 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
         displayedDate: $displayedDate
     )
     .frame(height: 300)
-    .padding()
-    .tint(.green) // Example of tinting from outside
+    .tint(Color(UIColor.brown)) // Example of tinting from outside
 }
