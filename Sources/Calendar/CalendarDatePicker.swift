@@ -210,11 +210,12 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
                                 displayedDate: activelyDisplayedDate,
                             )
                             page(context)
+                                .padding(.top, 12)
                         }
+                        .frame(minHeight: 380, alignment: .top)
                         .frame(maxHeight: .infinity, alignment: .top)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: proxy.size.height)
                 }
             }
         }
@@ -225,13 +226,23 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
     @Previewable @State var selection = Date()
     @Previewable @State var displayedDate = Date()
 
-    CalendarDatePicker(
-        selection: $selection,
-        displayedDate: $displayedDate
-    )
-    .frame(height: 450)
-    .padding()
-    .tint(Color(UIColor.purple)) // Example of tinting from outside
+    ZStack {
+        LinearGradient(
+            colors: [.purple, .pink],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .edgesIgnoringSafeArea(.all)
+
+        ScrollView {
+            CalendarDatePicker(
+                selection: $selection,
+                displayedDate: $displayedDate
+            )
+            .padding()
+            .tint(Color(UIColor.purple)) // Example of tinting from outside
+        }
+    }
 }
 
 #Preview("Custom Cell") {

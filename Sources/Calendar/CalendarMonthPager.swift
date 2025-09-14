@@ -26,9 +26,6 @@ public struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
         pageViewController.dataSource = context.coordinator
         pageViewController.delegate = context.coordinator
 
-        // Set background color
-        pageViewController.view.backgroundColor = UIColor.clear
-
         // Set initial page
         let initialPage = context.coordinator.createPage(for: selection)
         pageViewController.setViewControllers([initialPage], direction: .forward, animated: false)
@@ -77,6 +74,7 @@ public struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
             let hostingController = UIHostingController(rootView: view)
             let monthOffset = getMonthOffset(for: date)
             hostingController.view.tag = monthOffset
+            hostingController.view.backgroundColor = UIColor.clear
             return hostingController
         }
 
