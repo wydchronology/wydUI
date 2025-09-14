@@ -102,18 +102,23 @@ struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLabel: Vi
                     monthYearPicker($displayedDate, $isMonthYearPickerPresented)
                         .frame(width: proxy.size.width, height: proxy.size.height)
                 } else {
-                    let context = CalendarDatePickerContext(
-                        selection: selection,
-                        displayedDate: displayedDate,
-                        cellSize: cellSize
-                    )
-
                     VStack(spacing: verticalSpacing) {
+                        let context = CalendarDatePickerContext(
+                            selection: selection,
+                            displayedDate: displayedDate,
+                            cellSize: cellSize
+                        )
+
                         CalendarWeekDays(selection: selection) { day, _ in
                             dayOfWeekLabel(day, context)
                         }
 
-                        CalendarMonthPager(selection: $displayedDate) { _ in
+                        CalendarMonthPager(selection: $displayedDate) { activelyDisplayedDate in
+                            let context = CalendarDatePickerContext(
+                                selection: selection,
+                                displayedDate: activelyDisplayedDate,
+                                cellSize: cellSize
+                            )
                             page(context)
                         }
                         .frame(maxHeight: .infinity, alignment: .top)

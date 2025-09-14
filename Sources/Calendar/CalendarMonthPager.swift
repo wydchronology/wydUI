@@ -4,8 +4,14 @@ import UIKit
 struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
     let content: (Date) -> Content
     @Binding var selection: Date
+    let calendar: Calendar
 
-    init(selection: Binding<Date>, @ViewBuilder content: @escaping (Date) -> Content) {
+    init(
+        calendar: Calendar = .autoupdatingCurrent,
+        selection: Binding<Date>,
+        @ViewBuilder content: @escaping (Date) -> Content
+    ) {
+        self.calendar = calendar
         _selection = selection
         self.content = content
     }
@@ -30,36 +36,24 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
         return pageViewController
     }
 
-    func updateUIViewController(_ uiViewController: UIPageViewController, context: Context) {
-        // Update current date if it changed externally
-        if let currentVC = uiViewController.viewControllers?.first as? UIHostingController<Content> {
-            let currentMonthOffset = currentVC.view.tag
+    func updateUIViewController(_ pageViewController: UIPageViewController, context: Context) {
+        // Update parent to access the content
+        context.coordinator.parent = self
+
+        // Update currently rendered page if the binding changed externally
+        if let activeViewController = pageViewController.viewControllers?.first as? UIHostingController<Content> {
+            let currentMonthOffset = activeViewController.view.tag
             let currentPageDate = context.coordinator.getDate(for: currentMonthOffset)
 
-            // Check if we need to navigate to a different month
-            let calendar = Calendar.current
             let currentMonth = calendar.dateInterval(of: .month, for: currentPageDate)?.start ?? currentPageDate
             let newMonth = calendar.dateInterval(of: .month, for: selection)?.start ?? selection
 
-            if currentMonth != newMonth {
-                // Navigate to the new month
-                let newPage = context.coordinator.createPage(for: selection)
-                let newMonthOffset = context.coordinator.getMonthOffset(for: selection)
+            let newPage = context.coordinator.createPage(for: selection)
+            let newMonthOffset = newPage.view.tag
 
-                let direction: UIPageViewController.NavigationDirection = newMonthOffset > currentMonthOffset ? .forward : .reverse
-                uiViewController.setViewControllers([newPage], direction: direction, animated: true)
-            }
-        }
-
-        // Redraw content for each view controller in the viewControllers array
-        guard let viewControllers = uiViewController.viewControllers else { return }
-
-        for viewController in viewControllers {
-            if let hostingController = viewController as? UIHostingController<Content> {
-                let monthOffset = hostingController.view.tag
-                let date = context.coordinator.getDate(for: monthOffset)
-                hostingController.rootView = content(date)
-            }
+            let direction: UIPageViewController.NavigationDirection = newMonthOffset > currentMonthOffset ? .forward : .reverse
+            let animated = currentMonth != newMonth
+            pageViewController.setViewControllers([newPage], direction: direction, animated: animated)
         }
     }
 
@@ -101,8 +95,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
 
             let currentMonthOffset = hostingController.view.tag
             let previousDate = getDate(for: currentMonthOffset - 1)
-            let previousPage = createPage(for: previousDate)
-            return previousPage
+            return createPage(for: previousDate)
         }
 
         func pageViewController(_: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
@@ -110,8 +103,7 @@ struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
 
             let currentMonthOffset = hostingController.view.tag
             let nextDate = getDate(for: currentMonthOffset + 1)
-            let nextPage = createPage(for: nextDate)
-            return nextPage
+            return createPage(for: nextDate)
         }
 
         // MARK: - UIPageViewControllerDelegate
