@@ -46,5 +46,6 @@ public struct CalendarMonthGrid<DayView: View>: View {
                 }
             }
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
