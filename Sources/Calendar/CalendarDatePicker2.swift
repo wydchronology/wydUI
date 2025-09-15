@@ -4,27 +4,24 @@ import Time
 public struct CalendarDatePickerConfiguration: Sendable {
     let region: Region
     let verticalSpacing: CGFloat
-    let weekdaySymbolsVerticalPadding: CGFloat
-    let toolbarHorizontalPadding: CGFloat
+    let horizontalPadding: CGFloat
 
     public init(
         region: Region = .autoupdatingCurrent,
-        verticalSpacing: CGFloat = 0,
-        weekdaySymbolsVerticalPadding: CGFloat = 10,
-        toolbarHorizontalPadding: CGFloat = 10
+        verticalSpacing: CGFloat = 10,
+        horizontalPadding: CGFloat = 10
     ) {
         self.region = region
         self.verticalSpacing = verticalSpacing
-        self.weekdaySymbolsVerticalPadding = weekdaySymbolsVerticalPadding
-        self.toolbarHorizontalPadding = toolbarHorizontalPadding
+        self.horizontalPadding = horizontalPadding
     }
 }
 
 @MainActor
 public struct CalendarDatePickerComponents: Sendable {
-    let toolbar: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> AnyView
-    let picker: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> AnyView
-    let weekdaySymbols: (_ selection: Int?) -> AnyView
+    let toolbar: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView
+    let picker: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView
+    let weekdaySymbols: (_ selection: Int?, _ context: CalendarDatePickerConfiguration) -> AnyView
 
     public init() {
         toolbar = Self.defaultToolbar
@@ -34,7 +31,7 @@ public struct CalendarDatePickerComponents: Sendable {
 }
 
 public extension CalendarDatePickerComponents {
-    static let defaultPicker: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> AnyView = { isPresented, selection in
+    static let defaultPicker: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView = { isPresented, selection, _ in
         AnyView(
             CalendarMonthYearPicker2(
                 isPresented: isPresented,
@@ -43,105 +40,151 @@ public extension CalendarDatePickerComponents {
         )
     }
 
-    static let defaultToolbar: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> AnyView = { isPresented, selection in
+    static let defaultToolbar: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView = { isPresented, selection, context in
         AnyView(
             CalendarDatePickerToolbar2(
                 isPresented: isPresented,
                 selection: selection,
             )
+            .padding(.horizontal, context.horizontalPadding)
         )
     }
 
-    static let defaultWeekdaySymbols: (_ highlightedIndex: Int?) -> AnyView = { highlightedIndex in
+    static let defaultWeekdaySymbols: (_ highlightedIndex: Int?, _ context: CalendarDatePickerConfiguration) -> AnyView = { highlightedIndex, context in
         AnyView(
             CalendarWeekdaySymbols(highlightedIndex: highlightedIndex)
+                .padding(.top, context.verticalSpacing)
         )
     }
 }
 
 public extension CalendarDatePickerComponents {
     init(
-        @ViewBuilder toolbar: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
+        @ViewBuilder toolbar: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
     ) {
-        self.toolbar = { isPresented, selection in
-            AnyView(toolbar(isPresented, selection))
+        self.toolbar = { isPresented, selection, context in
+            AnyView(toolbar(isPresented, selection, context))
         }
         picker = Self.defaultPicker
         weekdaySymbols = Self.defaultWeekdaySymbols
     }
 
     init(
-        @ViewBuilder picker: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
+        @ViewBuilder picker: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
     ) {
         toolbar = Self.defaultToolbar
         weekdaySymbols = Self.defaultWeekdaySymbols
-        self.picker = { isPresented, selection in
-            AnyView(picker(isPresented, selection))
+        self.picker = { isPresented, selection, context in
+            AnyView(picker(isPresented, selection, context))
         }
     }
 
     init(
-        @ViewBuilder weekdaySymbols: @escaping (_ highlightedIndex: Int?) -> some View
+        @ViewBuilder weekdaySymbols: @escaping (
+            _ highlightedIndex: Int?,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View
     ) {
         toolbar = Self.defaultToolbar
         picker = Self.defaultPicker
-        self.weekdaySymbols = { highlightedIndex in
-            AnyView(weekdaySymbols(highlightedIndex))
+        self.weekdaySymbols = { highlightedIndex, context in
+            AnyView(weekdaySymbols(highlightedIndex, context))
         }
     }
 
     init(
-        @ViewBuilder toolbar: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
-        @ViewBuilder picker: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
+        @ViewBuilder toolbar: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
+        @ViewBuilder picker: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
     ) {
         weekdaySymbols = Self.defaultWeekdaySymbols
-        self.toolbar = { isPresented, selection in
-            AnyView(toolbar(isPresented, selection))
+        self.toolbar = { isPresented, selection, context in
+            AnyView(toolbar(isPresented, selection, context))
         }
-        self.picker = { isPresented, selection in
-            AnyView(picker(isPresented, selection))
+        self.picker = { isPresented, selection, context in
+            AnyView(picker(isPresented, selection, context))
         }
     }
 
     init(
-        @ViewBuilder toolbar: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
-        @ViewBuilder weekdaySymbols: @escaping (_ highlightedIndex: Int?) -> some View
+        @ViewBuilder toolbar: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
+        @ViewBuilder weekdaySymbols: @escaping (
+            _ highlightedIndex: Int?,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View
     ) {
         picker = Self.defaultPicker
-        self.toolbar = { isPresented, selection in
-            AnyView(toolbar(isPresented, selection))
+        self.toolbar = { isPresented, selection, context in
+            AnyView(toolbar(isPresented, selection, context))
         }
-        self.weekdaySymbols = { highlightedIndex in
-            AnyView(weekdaySymbols(highlightedIndex))
+        self.weekdaySymbols = { highlightedIndex, context in
+            AnyView(weekdaySymbols(highlightedIndex, context))
         }
     }
 
     init(
-        @ViewBuilder picker: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
-        @ViewBuilder weekdaySymbols: @escaping (_ highlightedIndex: Int?) -> some View
+        @ViewBuilder picker: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
+        @ViewBuilder weekdaySymbols: @escaping (
+            _ highlightedIndex: Int?,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View
     ) {
         toolbar = Self.defaultToolbar
-        self.picker = { isPresented, selection in
-            AnyView(picker(isPresented, selection))
+        self.picker = { isPresented, selection, context in
+            AnyView(picker(isPresented, selection, context))
         }
-        self.weekdaySymbols = { highlightedIndex in
-            AnyView(weekdaySymbols(highlightedIndex))
+        self.weekdaySymbols = { highlightedIndex, context in
+            AnyView(weekdaySymbols(highlightedIndex, context))
         }
     }
 
     init(
-        @ViewBuilder toolbar: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
-        @ViewBuilder picker: @escaping (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>) -> some View,
-        @ViewBuilder weekdaySymbols: @escaping (_ highlightedIndex: Int?) -> some View
+        @ViewBuilder toolbar: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
+        @ViewBuilder picker: @escaping (
+            _ isPresented: Binding<Bool>,
+            _ selection: Binding<Fixed<Month>>,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View,
+        @ViewBuilder weekdaySymbols: @escaping (
+            _ highlightedIndex: Int?,
+            _ context: CalendarDatePickerConfiguration
+        ) -> some View
     ) {
-        self.toolbar = { selection, isPresented in
-            AnyView(toolbar(selection, isPresented))
+        self.toolbar = { selection, isPresented, context in
+            AnyView(toolbar(selection, isPresented, context))
         }
-        self.picker = { isPresented, selection in
-            AnyView(picker(isPresented, selection))
+        self.picker = { isPresented, selection, context in
+            AnyView(picker(isPresented, selection, context))
         }
-        self.weekdaySymbols = { highlightedIndex in
-            AnyView(weekdaySymbols(highlightedIndex))
+        self.weekdaySymbols = { highlightedIndex, context in
+            AnyView(weekdaySymbols(highlightedIndex, context))
         }
     }
 }
@@ -185,24 +228,29 @@ public struct CalendarDatePicker2: View {
     }
 
     public var body: some View {
-        VStack(spacing: config.verticalSpacing) {
-            components.toolbar($isPickerPresented, $keyPeriod)
-                .padding(.horizontal, config.toolbarHorizontalPadding)
+        GeometryReader { geometry in
+            VStack(spacing: config.verticalSpacing) {
+                components.toolbar($isPickerPresented, $keyPeriod, config)
 
-            if isPickerPresented {
-                components.picker($isPickerPresented, $keyPeriod)
-            } else {
-                VStack(spacing: 0) {
-                    components.weekdaySymbols(highlightedIndex)
-                        .padding(.vertical, config.weekdaySymbolsVerticalPadding)
+                if isPickerPresented {
+                    components.picker($isPickerPresented, $keyPeriod, config)
+                } else {
+                    VStack(spacing: config.verticalSpacing) {
+                        components.weekdaySymbols(highlightedIndex, config)
+
+                        CalendarPager($keyPeriod) { period in
+                            Text(period.format(year: .naturalDigits, month: .naturalName))
+                                .frame(minWidth: geometry.size.width, minHeight: geometry.size.height)
+                        }
+                    }
                 }
             }
-        }
-        .onChange(of: keyPeriod) {
-            let start = keyPeriod.firstDay.firstInstant.date
-            let end = keyPeriod.lastDay.firstInstant.date
-            let interval = DateInterval(start: start, end: end)
-            onRangeChange(interval)
+            .onChange(of: keyPeriod) {
+                let start = keyPeriod.firstDay.firstInstant.date
+                let end = keyPeriod.lastDay.firstInstant.date
+                let interval = DateInterval(start: start, end: end)
+                onRangeChange(interval)
+            }
         }
     }
 }
@@ -244,7 +292,7 @@ public struct CalendarDatePicker2: View {
                     print("dateInterval changed: \(dateInterval)")
                 },
                 components: CalendarDatePickerComponents(
-                    toolbar: { isPresented, selection in
+                    toolbar: { isPresented, selection, _ in
                         CalendarDatePickerToolbar2(
                             isPresented: isPresented,
                             selection: selection,
@@ -297,7 +345,7 @@ public struct CalendarDatePicker2: View {
         CalendarDatePicker2(
             selection: $selection,
             components: CalendarDatePickerComponents(
-                toolbar: { isPresented, selection in
+                toolbar: { isPresented, selection, _ in
                     HStack {
                         Button("←") {
                             // Custom previous action

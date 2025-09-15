@@ -120,7 +120,7 @@ public struct CalendarDatePickerToolbar2: View {
     }
 
     private var monthYearLabel: String {
-        "\(selection.format(month: .naturalName)) \(selection.format(year: .naturalDigits))"
+        selection.format(year: .naturalDigits, month: .naturalName)
     }
 
     private func decrementMonth() {
