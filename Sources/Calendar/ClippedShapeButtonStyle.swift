@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct ClippedShapeButtonStyle<S: Shape>: ButtonStyle {
-    let shape: S
+    public let shape: S
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
