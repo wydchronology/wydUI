@@ -6,7 +6,11 @@ public struct CalendarMonthGrid<DayView: View>: View {
 
     let verticalSpacing: CGFloat
 
-    init(verticalSpacing: CGFloat = 10, month: Date, @ViewBuilder dayViewBuilder: @escaping (Int?, Date?) -> DayView) {
+    init(
+        verticalSpacing: CGFloat = 5,
+        month: Date,
+        @ViewBuilder dayViewBuilder: @escaping (Int?, Date?) -> DayView
+    ) {
         self.verticalSpacing = verticalSpacing
         self.month = month
         self.dayViewBuilder = dayViewBuilder

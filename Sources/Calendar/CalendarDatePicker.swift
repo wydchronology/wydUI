@@ -96,7 +96,58 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
         @ViewBuilder dayOfWeekLabel: @escaping (String, CalendarDatePickerContext) -> WeekDayLabel = { day, _ in
             Text(day)
                 .font(.system(.caption, design: .rounded, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(UIColor.tertiaryLabel))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        },
+        @ViewBuilder cell: @escaping (Date, CalendarDatePickerContext) -> Cell
+    ) where Page == CalendarMonthGrid<CalendarCell<Cell>> {
+        let pageContent: (CalendarDatePickerContext) -> CalendarMonthGrid<CalendarCell<Cell>> = { context in
+            CalendarMonthGrid(month: context.displayedDate) { _, day in
+                CalendarCell(
+                    day: day,
+                    context: context
+                ) { date, context in
+                    cell(date, context)
+                }
+            }
+        }
+
+        self.init(
+            verticalSpacing: verticalSpacing,
+            calendar: calendar,
+            selection: selection,
+            displayedDate: displayedDate,
+            toolbar: toolbar,
+            monthYearPicker: monthYearPicker,
+            dayOfWeekLabel: dayOfWeekLabel,
+            page: pageContent,
+            cell: cell
+        )
+    }
+
+    // Convenience initializer with default page and cell getter
+    public init(
+        verticalSpacing: CGFloat = 20,
+        calendar: Calendar = Calendar.autoupdatingCurrent,
+        selection: Binding<Date>,
+        displayedDate: Binding<Date>,
+        @ViewBuilder toolbar: @escaping (Binding<Date>, Binding<Bool>) -> Toolbar = { displayedDate, isPresented in
+            CalendarDatePickerToolbar(
+                selection: displayedDate,
+                isMonthYearPickerPresented: isPresented
+            )
+        },
+        @ViewBuilder monthYearPicker: @escaping (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker = { selection, isPresented in
+            CalendarMonthYearPicker(
+                selection: selection,
+                isPresented: isPresented
+            )
+        },
+        @ViewBuilder dayOfWeekLabel: @escaping (String, CalendarDatePickerContext) -> WeekDayLabel = { day, _ in
+            Text(day)
+                .font(.system(.caption, design: .rounded, weight: .medium))
+                .foregroundColor(Color(UIColor.tertiaryLabel))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         },
@@ -137,89 +188,37 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
         )
     }
 
-    // Convenience initializer with default page and cell getter
-    public init(
-        verticalSpacing: CGFloat = 20,
-        calendar: Calendar = Calendar.autoupdatingCurrent,
-        selection: Binding<Date>,
-        displayedDate: Binding<Date>,
-        @ViewBuilder toolbar: @escaping (Binding<Date>, Binding<Bool>) -> Toolbar = { displayedDate, isPresented in
-            CalendarDatePickerToolbar(
-                selection: displayedDate,
-                isMonthYearPickerPresented: isPresented
-            )
-        },
-        @ViewBuilder monthYearPicker: @escaping (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker = { selection, isPresented in
-            CalendarMonthYearPicker(
-                selection: selection,
-                isPresented: isPresented
-            )
-        },
-        @ViewBuilder dayOfWeekLabel: @escaping (String, CalendarDatePickerContext) -> WeekDayLabel = { day, _ in
-            Text(day)
-                .font(.system(.caption, design: .rounded, weight: .medium))
-                .foregroundColor(.secondary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        },
-        @ViewBuilder cell: @escaping (Date, CalendarDatePickerContext) -> Cell
-    ) where Page == CalendarMonthGrid<CalendarCell<Cell>> {
-        let pageContent: (CalendarDatePickerContext) -> CalendarMonthGrid<CalendarCell<Cell>> = { context in
-            CalendarMonthGrid(month: context.displayedDate) { _, day in
-                CalendarCell(
-                    day: day,
-                    context: context
-                ) { date, context in
-                    cell(date, context)
-                }
-            }
-        }
-
-        self.init(
-            verticalSpacing: verticalSpacing,
-            calendar: calendar,
-            selection: selection,
-            displayedDate: displayedDate,
-            toolbar: toolbar,
-            monthYearPicker: monthYearPicker,
-            dayOfWeekLabel: dayOfWeekLabel,
-            page: pageContent,
-            cell: cell
-        )
-    }
-
     public var body: some View {
-        GeometryReader { proxy in
-            VStack(spacing: verticalSpacing) {
-                toolbar($displayedDate, $isMonthYearPickerPresented)
+        VStack(spacing: verticalSpacing) {
+            toolbar($displayedDate, $isMonthYearPickerPresented)
 
-                if isMonthYearPickerPresented {
-                    monthYearPicker($displayedDate, $isMonthYearPickerPresented)
-                        .frame(width: proxy.size.width, height: proxy.size.height)
-                } else {
-                    VStack(spacing: verticalSpacing) {
+            if isMonthYearPickerPresented {
+                monthYearPicker($displayedDate, $isMonthYearPickerPresented)
+                    .frame(minHeight: 380, alignment: .top)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(spacing: 0) {
+                    let context = CalendarDatePickerContext(
+                        selection: selection,
+                        displayedDate: displayedDate,
+                    )
+
+                    CalendarWeekDays(selection: selection) { day, _ in
+                        dayOfWeekLabel(day, context)
+                    }
+
+                    CalendarMonthPager(selection: $displayedDate) { activelyDisplayedDate in
                         let context = CalendarDatePickerContext(
                             selection: selection,
-                            displayedDate: displayedDate,
+                            displayedDate: activelyDisplayedDate,
                         )
-
-                        CalendarWeekDays(selection: selection) { day, _ in
-                            dayOfWeekLabel(day, context)
-                        }
-
-                        CalendarMonthPager(selection: $displayedDate) { activelyDisplayedDate in
-                            let context = CalendarDatePickerContext(
-                                selection: selection,
-                                displayedDate: activelyDisplayedDate,
-                            )
-                            page(context)
-                                .padding(.top, 12)
-                        }
-                        .frame(minHeight: 380, alignment: .top)
-                        .frame(maxHeight: .infinity, alignment: .top)
+                        page(context)
+                            .padding(.top, verticalSpacing / 2)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 380, alignment: .top)
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
+                .frame(maxWidth: .infinity)
             }
         }
     }
@@ -259,6 +258,14 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
             CalendarDateCell(
                 date: date,
                 selection: selection,
+                label: { dayString, isSelected, isToday, size in
+                    Text(dayString)
+                        .frame(width: size, height: size)
+                        .font(.system(.body, design: .rounded, weight: isSelected ? .bold : .regular))
+                        .foregroundColor(isSelected ? (isToday ? Color(UIColor.white) : Color.accentColor) : (isToday ? Color.accentColor : Color(UIColor.label)))
+                        .background(isSelected ? (isToday ? Color.accentColor : Color.accentColor.opacity(0.1)) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                },
                 indicator: { _ in
                     if Bool.random() {
                         Circle()
@@ -269,11 +276,14 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
             ) {
                 selection = date
             }
+            .buttonStyle(
+                ClippedShapeButtonStyle(shape: RoundedRectangle(cornerRadius: 5))
+            )
         }
     )
     .frame(height: 450)
     .padding()
-    .tint(Color(UIColor.brown)) // Example of tinting from outside
+    .tint(Color(UIColor.magenta)) // Example of tinting from outside
 }
 
 #Preview("Custom Page and Cell") {

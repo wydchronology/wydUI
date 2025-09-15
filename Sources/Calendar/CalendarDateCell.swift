@@ -1,5 +1,28 @@
 import SwiftUI
 
+public struct CalendarDateCellLabel: View {
+    let dayString: String
+    let isSelected: Bool
+    let isToday: Bool
+    let size: CGFloat
+
+    public init(dayString: String, isSelected: Bool, isToday: Bool, size: CGFloat) {
+        self.dayString = dayString
+        self.isSelected = isSelected
+        self.isToday = isToday
+        self.size = size
+    }
+
+    public var body: some View {
+        Text(dayString)
+            .frame(width: size, height: size)
+            .font(.system(.title3, design: .rounded, weight: isSelected ? .bold : .regular))
+            .foregroundColor(isSelected ? (isToday ? Color(UIColor.white) : Color.accentColor) : (isToday ? Color.accentColor : Color(UIColor.label)))
+            .background(isSelected ? (isToday ? Color.accentColor : Color.accentColor.opacity(0.1)) : Color.clear)
+            .clipShape(Circle())
+    }
+}
+
 public struct CalendarDateCell<Indicator: View, Label: View>: View {
     let calendar: Calendar
     let size: CGFloat
@@ -14,13 +37,10 @@ public struct CalendarDateCell<Indicator: View, Label: View>: View {
 
     public init(
         calendar: Calendar = .autoupdatingCurrent,
-        size: CGFloat = 40,
+        size: CGFloat = 42,
         spacing: CGFloat = 5,
         date: Date,
         selection: Date,
-        @ViewBuilder label: @escaping (String, Bool, Bool, CGFloat) -> Label = {
-            CalendarDateCellLabel(dayString: $0, isSelected: $1, isToday: $2, size: $3)
-        },
         foregroundColor: @escaping (Bool, Bool) -> Color = { isSelected, isToday in
             if isSelected {
                 return isToday ? Color(UIColor.white) : Color.accentColor
@@ -35,6 +55,9 @@ public struct CalendarDateCell<Indicator: View, Label: View>: View {
                 return isToday ? Color.accentColor : Color.accentColor.opacity(0.1)
             }
             return Color.clear
+        },
+        @ViewBuilder label: @escaping (String, Bool, Bool, CGFloat) -> Label = {
+            CalendarDateCellLabel(dayString: $0, isSelected: $1, isToday: $2, size: $3)
         },
         @ViewBuilder indicator: @escaping (Date) -> Indicator = { _ in
             EmptyView()
@@ -71,45 +94,10 @@ public struct CalendarDateCell<Indicator: View, Label: View>: View {
                     size
                 )
             }
-            .buttonStyle(PressedButtonStyle())
 
             indicator(date)
 
             Spacer()
         }
-    }
-
-    struct PressedButtonStyle: ButtonStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .background(
-                    configuration.isPressed ? Color.accentColor.opacity(0.1) : Color.clear
-                )
-                .clipShape(Circle())
-                .animation(.spring(duration: 0.2), value: configuration.isPressed)
-        }
-    }
-}
-
-public struct CalendarDateCellLabel: View {
-    let dayString: String
-    let isSelected: Bool
-    let isToday: Bool
-    let size: CGFloat
-
-    public init(dayString: String, isSelected: Bool, isToday: Bool, size: CGFloat) {
-        self.dayString = dayString
-        self.isSelected = isSelected
-        self.isToday = isToday
-        self.size = size
-    }
-
-    public var body: some View {
-        Text(dayString)
-            .frame(width: size, height: size)
-            .font(.system(.body, design: .rounded, weight: isSelected ? .bold : .regular))
-            .foregroundColor(isSelected ? (isToday ? Color(UIColor.white) : Color.accentColor) : (isToday ? Color.accentColor : Color(UIColor.label)))
-            .background(isSelected ? (isToday ? Color.accentColor : Color.accentColor.opacity(0.1)) : Color.clear)
-            .clipShape(Circle())
     }
 }
