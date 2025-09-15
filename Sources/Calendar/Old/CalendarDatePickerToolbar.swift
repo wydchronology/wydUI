@@ -2,7 +2,7 @@ import SwiftUI
 
 public struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>: View {
     @Binding var selection: Date
-    @Binding var isMonthYearPickerPresented: Bool
+    @Binding var isPickerPresented: Bool
 
     let label: (Date, String, Binding<Bool>) -> Label
     let previous: (@escaping () -> Void) -> Previous
@@ -12,7 +12,7 @@ public struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>
 
     public init(
         selection: Binding<Date>,
-        isMonthYearPickerPresented: Binding<Bool> = .constant(false),
+        isPickerPresented: Binding<Bool> = .constant(false),
         @ViewBuilder label: @escaping (Date, String, Binding<Bool>) -> Label = { _, formattedLabel, isPresentedBinding in
             CalendarMonthLabel(
                 formattedLabel: formattedLabel,
@@ -41,7 +41,7 @@ public struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>
         }
     ) {
         _selection = selection
-        _isMonthYearPickerPresented = isMonthYearPickerPresented
+        _isPickerPresented = isPickerPresented
         self.label = label
         self.previous = previous
         self.next = next
@@ -68,12 +68,12 @@ public struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>
     public var body: some View {
         HStack(spacing: .zero) {
             Spacer()
-            label(selection, monthYearLabel, $isMonthYearPickerPresented)
+            label(selection, monthYearLabel, $isPickerPresented)
 
             Spacer()
                 .frame(maxWidth: .infinity)
 
-            if !isMonthYearPickerPresented {
+            if !isPickerPresented {
                 HStack(spacing: buttonSpacing) {
                     previous(decrementMonth)
                     next(incrementMonth)
@@ -130,7 +130,7 @@ public struct CalendarDatePickerToolbar<Label: View, Previous: View, Next: View>
         // CalendarMonthNavigationHeader with custom tint
         CalendarDatePickerToolbar(
             selection: $previewMonth,
-            isMonthYearPickerPresented: $isPickerPresented
+            isPickerPresented: $isPickerPresented
         )
         .tint(.purple)
 

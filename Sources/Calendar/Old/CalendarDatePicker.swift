@@ -43,7 +43,7 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
         @ViewBuilder toolbar: @escaping (Binding<Date>, Binding<Bool>) -> Toolbar = { displayedDate, isPresented in
             CalendarDatePickerToolbar(
                 selection: displayedDate,
-                isMonthYearPickerPresented: isPresented
+                isPickerPresented: isPresented
             )
         },
         @ViewBuilder monthYearPicker: @escaping (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker = { selection, isPresented in
@@ -84,7 +84,7 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
         @ViewBuilder toolbar: @escaping (Binding<Date>, Binding<Bool>) -> Toolbar = { displayedDate, isPresented in
             CalendarDatePickerToolbar(
                 selection: displayedDate,
-                isMonthYearPickerPresented: isPresented
+                isPickerPresented: isPresented
             )
         },
         @ViewBuilder monthYearPicker: @escaping (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker = { selection, isPresented in
@@ -135,7 +135,7 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
         @ViewBuilder toolbar: @escaping (Binding<Date>, Binding<Bool>) -> Toolbar = { displayedDate, isPresented in
             CalendarDatePickerToolbar(
                 selection: displayedDate,
-                isMonthYearPickerPresented: isPresented
+                isPickerPresented: isPresented
             )
         },
         @ViewBuilder monthYearPicker: @escaping (Binding<Date>, _ isPresented: Binding<Bool>) -> MonthYearPicker = { selection, isPresented in
@@ -230,7 +230,7 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
 
     ZStack {
         LinearGradient(
-            colors: [.purple, .pink],
+            colors: [.purple.opacity(0.3), .pink.opacity(0.3)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

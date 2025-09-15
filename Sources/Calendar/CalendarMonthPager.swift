@@ -38,20 +38,21 @@ public struct CalendarMonthPager<Content: View>: UIViewControllerRepresentable {
         context.coordinator.parent = self
 
         // Update currently rendered page if the binding changed externally
-        if let activeViewController = pageViewController.viewControllers?.first as? UIHostingController<Content> {
-            let currentMonthOffset = activeViewController.view.tag
-            let currentPageDate = context.coordinator.getDate(for: currentMonthOffset)
+        let activeViewController = pageViewController.viewControllers?.first as? UIHostingController<Content>
+        guard let activeViewController = activeViewController else { return }
 
-            let currentMonth = calendar.dateInterval(of: .month, for: currentPageDate)?.start ?? currentPageDate
-            let newMonth = calendar.dateInterval(of: .month, for: selection)?.start ?? selection
+        let currentMonthOffset = activeViewController.view.tag
+        let currentPageDate = context.coordinator.getDate(for: currentMonthOffset)
 
-            let newPage = context.coordinator.createPage(for: selection)
-            let newMonthOffset = newPage.view.tag
+        guard let currentMonth = calendar.dateInterval(of: .month, for: currentPageDate) else { return }
+        guard let newMonth = calendar.dateInterval(of: .month, for: selection) else { return }
 
-            let direction: UIPageViewController.NavigationDirection = newMonthOffset > currentMonthOffset ? .forward : .reverse
-            let animated = currentMonth != newMonth
-            pageViewController.setViewControllers([newPage], direction: direction, animated: animated)
-        }
+        let newPage = context.coordinator.createPage(for: selection)
+        let newMonthOffset = newPage.view.tag
+
+        let direction: UIPageViewController.NavigationDirection = newMonthOffset > currentMonthOffset ? .forward : .reverse
+        let animated = currentMonth.start != newMonth.start
+        pageViewController.setViewControllers([newPage], direction: direction, animated: animated)
     }
 
     public func makeCoordinator() -> Coordinator {

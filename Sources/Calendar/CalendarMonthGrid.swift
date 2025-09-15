@@ -1,19 +1,19 @@
 import SwiftUI
 
-public struct CalendarMonthGrid<DayView: View>: View {
+public struct CalendarMonthGrid<Cell: View>: View {
     let month: Date
-    let dayViewBuilder: (Int?, Date?) -> DayView
+    let cell: (Int?, Date?) -> Cell
 
     let verticalSpacing: CGFloat
 
     init(
-        verticalSpacing: CGFloat = 5,
+        verticalSpacing: CGFloat = 14,
         month: Date,
-        @ViewBuilder dayViewBuilder: @escaping (Int?, Date?) -> DayView
+        @ViewBuilder cell: @escaping (Int?, Date?) -> Cell
     ) {
         self.verticalSpacing = verticalSpacing
         self.month = month
-        self.dayViewBuilder = dayViewBuilder
+        self.cell = cell
     }
 
     private var daysInMonth: Int {
@@ -33,23 +33,30 @@ public struct CalendarMonthGrid<DayView: View>: View {
         return weeksNeeded * 7
     }
 
-    public var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: verticalSpacing) {
-            ForEach(0 ..< totalDaysInGrid, id: \.self) { dayIndex in
-                let calendar = Calendar.current
-                let startOfMonth = calendar.dateInterval(of: .month, for: month)?.start ?? month
-                let firstWeekday = calendar.component(.weekday, from: startOfMonth)
-                let dayOfMonth = dayIndex - firstWeekday + 2
+    private var numberOfRows: Int {
+        return totalDaysInGrid / 7
+    }
 
-                if dayOfMonth > 0 && dayOfMonth <= daysInMonth {
-                    // Calculate the actual date for this day
-                    let actualDate = calendar.date(byAdding: .day, value: dayOfMonth - 1, to: startOfMonth)
-                    dayViewBuilder(dayOfMonth, actualDate)
-                } else {
-                    dayViewBuilder(nil, nil)
+    public var body: some View {
+        GeometryReader { geometry in
+            let finalSpacing = numberOfRows > 5 ? 0 : verticalSpacing
+            
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: finalSpacing) {
+                ForEach(0 ..< totalDaysInGrid, id: \.self) { dayIndex in
+                    let calendar = Calendar.current
+                    let startOfMonth = calendar.dateInterval(of: .month, for: month)?.start ?? month
+                    let firstWeekday = calendar.component(.weekday, from: startOfMonth)
+                    let dayOfMonth = dayIndex - firstWeekday + 2
+
+                    if dayOfMonth > 0 && dayOfMonth <= daysInMonth {
+                        // Calculate the actual date for this day
+                        let actualDate = calendar.date(byAdding: .day, value: dayOfMonth - 1, to: startOfMonth)
+                        cell(dayOfMonth, actualDate)
+                    } else {
+                        cell(nil, nil)
+                    }
                 }
             }
         }
-        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
