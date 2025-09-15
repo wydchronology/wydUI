@@ -3,6 +3,10 @@ import SwiftUI
 public struct ClippedShapeButtonStyle<S: Shape>: ButtonStyle {
     public let shape: S
 
+    public init(shape: S) {
+        self.shape = shape
+    }
+
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(
