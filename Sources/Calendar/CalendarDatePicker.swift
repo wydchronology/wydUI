@@ -100,8 +100,11 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         },
-    ) where Cell == CalendarDateCell<EmptyView>, Page == CalendarMonthGrid<CalendarCell<CalendarDateCell<EmptyView>>> {
-        let cellContent: (Date, CalendarDatePickerContext) -> CalendarDateCell<EmptyView> = { date, context in
+    ) where Cell == CalendarDateCell<EmptyView, CalendarDateCellLabel>, Page == CalendarMonthGrid<CalendarCell<CalendarDateCell<EmptyView, CalendarDateCellLabel>>> {
+        let cellContent: (
+            Date,
+            CalendarDatePickerContext
+        ) -> CalendarDateCell<EmptyView, CalendarDateCellLabel> = { date, context in
             CalendarDateCell(
                 date: date,
                 selection: context.selection
@@ -110,7 +113,7 @@ public struct CalendarDatePicker<Toolbar: View, MonthYearPicker: View, WeekDayLa
             }
         }
 
-        let pageContent: (CalendarDatePickerContext) -> CalendarMonthGrid<CalendarCell<CalendarDateCell<EmptyView>>> = { context in
+        let pageContent: (CalendarDatePickerContext) -> CalendarMonthGrid<CalendarCell<CalendarDateCell<EmptyView, CalendarDateCellLabel>>> = { context in
             CalendarMonthGrid(month: context.displayedDate) { _, day in
                 CalendarCell(
                     day: day,

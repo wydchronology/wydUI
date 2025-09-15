@@ -1,11 +1,12 @@
 import SwiftUI
 
-public struct CalendarDateCell<Indicator: View>: View {
+public struct CalendarDateCell<Indicator: View, Label: View>: View {
     let calendar: Calendar
     let size: CGFloat
     let spacing: CGFloat
     let date: Date
     let selection: Date
+    let label: (String, Bool, Bool, CGFloat) -> Label
     let foregroundColor: (_ isSelected: Bool, _ isToday: Bool) -> Color
     let backgroundColor: (_ isSelected: Bool, _ isToday: Bool) -> Color
     let indicator: (Date) -> Indicator
@@ -17,6 +18,9 @@ public struct CalendarDateCell<Indicator: View>: View {
         spacing: CGFloat = 5,
         date: Date,
         selection: Date,
+        @ViewBuilder label: @escaping (String, Bool, Bool, CGFloat) -> Label = {
+            CalendarDateCellLabel(dayString: $0, isSelected: $1, isToday: $2, size: $3)
+        },
         foregroundColor: @escaping (Bool, Bool) -> Color = { isSelected, isToday in
             if isSelected {
                 return isToday ? Color(UIColor.white) : Color.accentColor
@@ -42,6 +46,7 @@ public struct CalendarDateCell<Indicator: View>: View {
         self.spacing = spacing
         self.date = date
         self.selection = selection
+        self.label = label
         self.action = action
         self.foregroundColor = foregroundColor
         self.backgroundColor = backgroundColor
@@ -56,25 +61,21 @@ public struct CalendarDateCell<Indicator: View>: View {
         calendar.isDate(date, inSameDayAs: Date())
     }
 
-    private var label: String {
-        "\(calendar.component(.day, from: date))"
-    }
-
     public var body: some View {
         VStack(spacing: spacing) {
             Button(action: action) {
-                Text(label)
-                    .frame(width: size, height: size)
-                    .font(.system(.body, design: .rounded, weight: isSelected ? .bold : .regular))
-                    .foregroundColor(foregroundColor(isSelected, isToday))
-                    .background(backgroundColor(isSelected, isToday))
-                    .clipShape(Circle())
+                label(
+                    "\(calendar.component(.day, from: date))",
+                    isSelected,
+                    isToday,
+                    size
+                )
             }
             .buttonStyle(PressedButtonStyle())
 
             indicator(date)
 
-           Spacer()
+            Spacer()
         }
     }
 
@@ -87,5 +88,28 @@ public struct CalendarDateCell<Indicator: View>: View {
                 .clipShape(Circle())
                 .animation(.spring(duration: 0.2), value: configuration.isPressed)
         }
+    }
+}
+
+public struct CalendarDateCellLabel: View {
+    let dayString: String
+    let isSelected: Bool
+    let isToday: Bool
+    let size: CGFloat
+
+    public init(dayString: String, isSelected: Bool, isToday: Bool, size: CGFloat) {
+        self.dayString = dayString
+        self.isSelected = isSelected
+        self.isToday = isToday
+        self.size = size
+    }
+
+    public var body: some View {
+        Text(dayString)
+            .frame(width: size, height: size)
+            .font(.system(.body, design: .rounded, weight: isSelected ? .bold : .regular))
+            .foregroundColor(isSelected ? (isToday ? Color(UIColor.white) : Color.accentColor) : (isToday ? Color.accentColor : Color(UIColor.label)))
+            .background(isSelected ? (isToday ? Color.accentColor : Color.accentColor.opacity(0.1)) : Color.clear)
+            .clipShape(Circle())
     }
 }
