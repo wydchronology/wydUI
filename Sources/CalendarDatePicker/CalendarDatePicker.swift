@@ -3,26 +3,19 @@ import Time
 
 public struct CalendarDatePicker: View {
     @Binding var selection: Date
+    @Binding var keyPeriod: Fixed<Month>
 
-    @State private var keyPeriod: Fixed<Month>
     @State private var isPickerPresented: Bool = false
-    private let onRangeChange: (DateInterval) -> Void
     private let config: CalendarDatePickerConfiguration
 
     public init(
         selection: Binding<Date>,
-        onRangeChange: @escaping (DateInterval) -> Void = { _ in },
+        keyPeriod: Binding<Fixed<Month>>,
         config: CalendarDatePickerConfiguration = .init()
     ) {
-        _selection = selection
-        _keyPeriod = State(
-            initialValue: Fixed(
-                region: config.region,
-                date: selection.wrappedValue
-            )
-        )
-        self.onRangeChange = onRangeChange
         self.config = config
+        _selection = selection
+        _keyPeriod = keyPeriod
     }
 
     private var today: Fixed<Day> {
@@ -33,6 +26,7 @@ public struct CalendarDatePicker: View {
         if today.isDuring(keyPeriod) {
             return today.dayOfWeek
         }
+
         return nil
     }
 
@@ -58,18 +52,13 @@ public struct CalendarDatePicker: View {
                     }
                 }
             }
-            .onChange(of: keyPeriod) {
-                let start = keyPeriod.firstDay.firstInstant.date
-                let end = keyPeriod.lastDay.firstInstant.date
-                let interval = DateInterval(start: start, end: end)
-                onRangeChange(interval)
-            }
         }
     }
 }
 
 #Preview("CalendarDatePicker with defaults") {
     @Previewable @State var selection = Date()
+    @Previewable @State var keyPeriod = Fixed<Month>(region: .autoupdatingCurrent, date: Date())
 
     ZStack {
         LinearGradient(
@@ -80,7 +69,7 @@ public struct CalendarDatePicker: View {
         .edgesIgnoringSafeArea(.all)
 
         ScrollView {
-            CalendarDatePicker(selection: $selection)
+            CalendarDatePicker(selection: $selection, keyPeriod: $keyPeriod)
                 .padding()
                 .tint(Color(UIColor.purple)) // Example of tinting from outside
         }
@@ -89,6 +78,7 @@ public struct CalendarDatePicker: View {
 
 #Preview("CalendarDatePicker") {
     @Previewable @State var selection = Date()
+    @Previewable @State var keyPeriod = Fixed<Month>(region: .autoupdatingCurrent, date: Date())
 
     ZStack {
         LinearGradient(
@@ -101,9 +91,7 @@ public struct CalendarDatePicker: View {
         ScrollView {
             CalendarDatePicker(
                 selection: $selection,
-                onRangeChange: { dateInterval in
-                    print("dateInterval changed: \(dateInterval)")
-                },
+                keyPeriod: $keyPeriod,
                 config: CalendarDatePickerConfiguration(
                     components: CalendarDatePickerComponents(
                         toolbar: { isPresented, selection, _ in
@@ -179,6 +167,7 @@ public struct CalendarDatePicker: View {
 
 #Preview("Custom Toolbar Example") {
     @Previewable @State var selection = Date()
+    @Previewable @State var keyPeriod = Fixed<Month>(region: .autoupdatingCurrent, date: Date())
 
     VStack(spacing: 20) {
         Text("Custom Toolbar Example")
@@ -186,6 +175,7 @@ public struct CalendarDatePicker: View {
 
         CalendarDatePicker(
             selection: $selection,
+            keyPeriod: $keyPeriod,
             config: CalendarDatePickerConfiguration(
                 components: CalendarDatePickerComponents(
                     toolbar: { isPresented, selection, _ in
@@ -222,7 +212,7 @@ public struct CalendarDatePicker: View {
                     })
             )
         )
-        
+
         Spacer()
     }
     .padding()
