@@ -3,9 +3,9 @@ import Time
 import UIKit
 
 public struct CalendarPagerConfiguration {
-    let region: Region
-    let navigationOrientation: UIPageViewController.NavigationOrientation
-    let transitionStyle: UIPageViewController.TransitionStyle
+    public let region: Region
+    public let navigationOrientation: UIPageViewController.NavigationOrientation
+    public let transitionStyle: UIPageViewController.TransitionStyle
 
     public init(
         region: Region = .autoupdatingCurrent,

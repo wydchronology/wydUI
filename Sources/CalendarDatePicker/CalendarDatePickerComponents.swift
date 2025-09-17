@@ -19,7 +19,7 @@ public struct CalendarDatePickerComponents: Sendable {
 }
 
 public extension CalendarDatePickerComponents {
-    static let defaultPicker: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView = { isPresented, selection, _ in
+    public static let defaultPicker: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView = { isPresented, selection, _ in
         AnyView(
             CalendarMonthYearPicker(
                 isPresented: isPresented,
@@ -28,7 +28,7 @@ public extension CalendarDatePickerComponents {
         )
     }
 
-    static let defaultToolbar: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView = { isPresented, selection, context in
+    public static let defaultToolbar: (_ isPresented: Binding<Bool>, _ selection: Binding<Fixed<Month>>, _ context: CalendarDatePickerConfiguration) -> AnyView = { isPresented, selection, context in
         AnyView(
             CalendarDatePickerToolbar(
                 isPresented: isPresented,
@@ -38,14 +38,14 @@ public extension CalendarDatePickerComponents {
         )
     }
 
-    static let defaultWeekdaySymbols: (_ highlightedIndex: Int?, _ context: CalendarDatePickerConfiguration) -> AnyView = { highlightedIndex, context in
+    public static let defaultWeekdaySymbols: (_ highlightedIndex: Int?, _ context: CalendarDatePickerConfiguration) -> AnyView = { highlightedIndex, context in
         AnyView(
             CalendarWeekdaySymbols(highlightedIndex: highlightedIndex)
                 .padding(.top, context.verticalSpacing)
         )
     }
 
-    static let defaultPage: (_ selection: Binding<Date>, _ period: Fixed<Month>, _ context: CalendarDatePickerConfiguration) -> AnyView = { selection, period, context in
+    public static let defaultPage: (_ selection: Binding<Date>, _ period: Fixed<Month>, _ context: CalendarDatePickerConfiguration) -> AnyView = { selection, period, context in
         AnyView(
             CalendarMonthGrid(
                 month: period,
@@ -58,7 +58,7 @@ public extension CalendarDatePickerComponents {
         )
     }
 
-    static let defaultCell: (_ selection: Binding<Date>, _ day: Fixed<Day>?, _ context: CalendarDatePickerConfiguration) -> AnyView = { selection, day, context in
+    public static let defaultCell: (_ selection: Binding<Date>, _ day: Fixed<Day>?, _ context: CalendarDatePickerConfiguration) -> AnyView = { selection, day, context in
         AnyView(
             CalendarDateCell(selection: selection.wrappedValue, day: day) { day in
                 selection.wrappedValue = day.firstInstant.date

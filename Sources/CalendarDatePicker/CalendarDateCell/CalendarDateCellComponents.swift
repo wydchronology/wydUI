@@ -6,13 +6,13 @@ public struct CalendarDateCellComponents: Sendable {
     let label: (_ label: Fixed<Day>, _ isSelected: Bool, _ isToday: Bool, _ context: CalendarDateCellConfiguration) -> AnyView
     let indicator: (Fixed<Day>, CalendarDateCellConfiguration) -> AnyView
 
-    static let defaultIndicator: (Fixed<Day>, CalendarDateCellConfiguration) -> AnyView = { _, _ in
+    public static let defaultIndicator: (Fixed<Day>, CalendarDateCellConfiguration) -> AnyView = { _, _ in
         AnyView(
             EmptyView()
         )
     }
 
-    static let defaultLabel: (Fixed<Day>, Bool, Bool, CalendarDateCellConfiguration) -> AnyView = { day, isSelected, isToday, context in
+    public static let defaultLabel: (Fixed<Day>, Bool, Bool, CalendarDateCellConfiguration) -> AnyView = { day, isSelected, isToday, context in
         let text = "\(day.format(day: .naturalDigits))"
         return AnyView(
             Text(text)
@@ -24,32 +24,9 @@ public struct CalendarDateCellComponents: Sendable {
         )
     }
 
-    public init() {
-        label = Self.defaultLabel
-        indicator = Self.defaultIndicator
-    }
-
     public init(
-        @ViewBuilder label: @escaping (Fixed<Day>, Bool, Bool, CalendarDateCellConfiguration) -> some View
-    ) {
-        self.label = { day, isSelected, isToday, context in
-            AnyView(label(day, isSelected, isToday, context))
-        }
-        indicator = Self.defaultIndicator
-    }
-
-    public init(
-        @ViewBuilder indicator: @escaping (Fixed<Day>, CalendarDateCellConfiguration) -> some View
-    ) {
-        label = Self.defaultLabel
-        self.indicator = { day, context in
-            AnyView(indicator(day, context))
-        }
-    }
-
-    public init(
-        @ViewBuilder label: @escaping (Fixed<Day>, Bool, Bool, CalendarDateCellConfiguration) -> some View,
-        @ViewBuilder indicator: @escaping (Fixed<Day>, CalendarDateCellConfiguration) -> some View
+        @ViewBuilder label: @escaping (Fixed<Day>, Bool, Bool, CalendarDateCellConfiguration) -> some View = Self.defaultLabel,
+        @ViewBuilder indicator: @escaping (Fixed<Day>, CalendarDateCellConfiguration) -> some View = Self.defaultIndicator
     ) {
         self.label = { day, isSelected, isToday, context in
             AnyView(label(day, isSelected, isToday, context))
@@ -59,4 +36,3 @@ public struct CalendarDateCellComponents: Sendable {
         }
     }
 }
-

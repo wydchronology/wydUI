@@ -7,7 +7,7 @@ public struct CalendarDatePickerToolbarComponents: Sendable {
     let leading: (Context) -> AnyView
     let trailing: (Context) -> AnyView
 
-    static let defaultLeading: (Context) -> AnyView = { context in
+    public static let defaultLeading: (Context) -> AnyView = { context in
         AnyView(
             HStack(spacing: 0) {
                 CalendarMonthLabel(
@@ -27,7 +27,7 @@ public struct CalendarDatePickerToolbarComponents: Sendable {
         )
     }
 
-    static let defaultTrailing: (Context) -> AnyView = { context in
+    public static let defaultTrailing: (Context) -> AnyView = { context in
         AnyView(
             HStack(spacing: context.config.buttonSpacing) {
                 Button(action: context.decrementMonth) {
@@ -42,36 +42,13 @@ public struct CalendarDatePickerToolbarComponents: Sendable {
         )
     }
 
-    public init() {
-        leading = Self.defaultLeading
-        trailing = Self.defaultTrailing
-    }
-
     public init(
-        @ViewBuilder leading: @escaping (Context) -> some View,
-        @ViewBuilder trailing: @escaping (Context) -> some View,
+        @ViewBuilder leading: @escaping (Context) -> some View = Self.defaultLeading,
+        @ViewBuilder trailing: @escaping (Context) -> some View = Self.defaultTrailing,
     ) {
         self.leading = { context in
             AnyView(leading(context))
         }
-        self.trailing = { context in
-            AnyView(trailing(context))
-        }
-    }
-
-    public init(
-        leading: @escaping (Context) -> some View,
-    ) {
-        self.leading = { context in
-            AnyView(leading(context))
-        }
-        trailing = Self.defaultTrailing
-    }
-
-    public init(
-        trailing: @escaping (Context) -> some View
-    ) {
-        leading = Self.defaultLeading
         self.trailing = { context in
             AnyView(trailing(context))
         }

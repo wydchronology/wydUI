@@ -2,8 +2,8 @@ import SwiftUI
 import Time
 
 public struct CalendarMonthGridConfiguration: Sendable {
-    let region: Region
-    let verticalSpacing: CGFloat
+    public let region: Region
+    public let verticalSpacing: CGFloat
 
     public init(
         region: Region = .autoupdatingCurrent,

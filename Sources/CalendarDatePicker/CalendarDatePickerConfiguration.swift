@@ -3,11 +3,11 @@ import Time
 
 @MainActor
 public struct CalendarDatePickerConfiguration: Sendable {
-    let region: Region
-    let components: CalendarDatePickerComponents
-    let verticalSpacing: CGFloat
-    let horizontalPadding: CGFloat
-    let cellSize: CGFloat
+    public let region: Region
+    public let components: CalendarDatePickerComponents
+    public let verticalSpacing: CGFloat
+    public let horizontalPadding: CGFloat
+    public let cellSize: CGFloat
 
     public init(
         region: Region = .autoupdatingCurrent,

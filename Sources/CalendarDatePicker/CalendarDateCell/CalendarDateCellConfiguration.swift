@@ -2,10 +2,10 @@ import SwiftUI
 import Time
 
 public struct CalendarDateCellConfiguration: Sendable {
-    let region: Region
-    let verticalSpacing: CGFloat
-    let alignment: HorizontalAlignment
-    let clippedShape: any Shape
+    public let region: Region
+    public let verticalSpacing: CGFloat
+    public let alignment: HorizontalAlignment
+    public let clippedShape: any Shape
 
     public init(
         region: Region = .autoupdatingCurrent,

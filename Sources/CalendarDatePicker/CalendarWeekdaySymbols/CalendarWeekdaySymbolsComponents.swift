@@ -14,13 +14,11 @@ public struct CalendarWeekdaySymbolsComponents: Sendable {
         )
     }
 
-    public init(symbol: @escaping (_ label: String, _ isHighlighted: Bool) -> some View) {
+    public init(
+        symbol: @escaping (_ label: String, _ isHighlighted: Bool) -> some View = Self.defaultSymbol
+    ) {
         self.symbol = { label, isHighlighted in
             AnyView(symbol(label, isHighlighted))
         }
-    }
-
-    public init() {
-        symbol = Self.defaultSymbol
     }
 }
