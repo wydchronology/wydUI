@@ -1,27 +1,8 @@
 import SwiftUI
 import Time
 
-public struct CalendarDateCellConfiguration: Sendable {
-    let region: Region
-    let verticalSpacing: CGFloat
-    let alignment: HorizontalAlignment
-    let clippedShape: any Shape
-
-    public init(
-        region: Region = .autoupdatingCurrent,
-        verticalSpacing: CGFloat = 10,
-        alignment: HorizontalAlignment = .center,
-        clippedShape: some Shape = Circle()
-    ) {
-        self.region = region
-        self.verticalSpacing = verticalSpacing
-        self.alignment = alignment
-        self.clippedShape = clippedShape
-    }
-}
-
 @MainActor
-public struct CalendarDateCell2Components: Sendable {
+public struct CalendarDateCellComponents: Sendable {
     let label: (_ label: Fixed<Day>, _ isSelected: Bool, _ isToday: Bool, _ context: CalendarDateCellConfiguration) -> AnyView
     let indicator: (Fixed<Day>, CalendarDateCellConfiguration) -> AnyView
 
@@ -79,55 +60,3 @@ public struct CalendarDateCell2Components: Sendable {
     }
 }
 
-public struct CalendarDateCell2: View {
-    let selection: Date
-    let day: Fixed<Day>?
-    let config: CalendarDateCellConfiguration
-    let components: CalendarDateCell2Components
-    let action: (Fixed<Day>) -> Void
-
-    public init(
-        selection: Date,
-        day: Fixed<Day>?,
-        components: CalendarDateCell2Components = .init(),
-        config: CalendarDateCellConfiguration = .init(),
-        action: @escaping (Fixed<Day>) -> Void
-    ) {
-        self.selection = selection
-        self.day = day
-        self.components = components
-        self.config = config
-        self.action = action
-    }
-
-    private var isSelected: Bool {
-        guard let day = day else { return false }
-        let selectedDate = Fixed<Day>(region: config.region, date: selection)
-        return day.overlaps(selectedDate)
-    }
-
-    private var isToday: Bool {
-        guard let day = day else { return false }
-        let today = Fixed<Day>(region: config.region, date: Date())
-        return today.overlaps(day)
-    }
-
-    public var body: some View {
-        if let day = day {
-            VStack(alignment: config.alignment, spacing: config.verticalSpacing) {
-                Button(action: {
-                    action(day)
-                }) {
-                    components.label(day, isSelected, isToday, config)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-
-                components.indicator(day, config)
-            }
-        } else {
-            Rectangle()
-                .fill(Color.clear)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-}

@@ -1,33 +1,7 @@
 import SwiftUI
 import Time
 
-public struct CalendarMonthGridConfiguration: Sendable {
-    let region: Region
-    let verticalSpacing: CGFloat
-
-    public init(
-        region: Region = .autoupdatingCurrent,
-        verticalSpacing: CGFloat = 10
-    ) {
-        self.region = region
-        self.verticalSpacing = verticalSpacing
-    }
-}
-
-@MainActor
-public struct CalendarMonthGridComponents: Sendable {
-    let cell: (Fixed<Day>?) -> AnyView
-
-    public init(
-        @ViewBuilder cell: @escaping (Fixed<Day>?) -> some View
-    ) {
-        self.cell = { day in
-            AnyView(cell(day))
-        }
-    }
-}
-
-public struct CalendarMonthGrid2: View {
+public struct CalendarMonthGrid: View {
     let month: Fixed<Month>
     let components: CalendarMonthGridComponents
     let config: CalendarMonthGridConfiguration
