@@ -22,14 +22,17 @@ public struct CalendarPager<Content: View>: UIViewControllerRepresentable {
     @Binding var keyPeriod: Fixed<Month>
     let content: (Fixed<Month>) -> Content
     let config: CalendarPagerConfiguration
+    let prepare: ((Fixed<Month>) -> Void)?
 
     public init(
         config: CalendarPagerConfiguration = .init(),
         _ keyPeriod: Binding<Fixed<Month>>,
+        prepare: ((Fixed<Month>) -> Void)? = nil,
         @ViewBuilder content: @escaping (Fixed<Month>) -> Content
     ) {
         self.config = config
         self.content = content
+        self.prepare = prepare
         _keyPeriod = keyPeriod
     }
 
@@ -108,10 +111,12 @@ public struct CalendarPager<Content: View>: UIViewControllerRepresentable {
         // MARK: - UIPageViewControllerDataSource
 
         public func pageViewController(_: UIPageViewController, viewControllerBefore _: UIViewController) -> UIViewController? {
+            parent.prepare?(keyPeriod.previousMonth)
             return createPage(for: keyPeriod.previousMonth)
         }
 
         public func pageViewController(_: UIPageViewController, viewControllerAfter _: UIViewController) -> UIViewController? {
+            parent.prepare?(keyPeriod.nextMonth)
             return createPage(for: keyPeriod.nextMonth)
         }
 

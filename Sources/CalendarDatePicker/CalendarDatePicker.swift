@@ -5,15 +5,19 @@ public struct CalendarDatePicker: View {
     @Binding var selection: Date
     @Binding var keyPeriod: Fixed<Month>
 
+    let prepare: ((Fixed<Month>) -> Void)?
+
     @State private var isPickerPresented: Bool = false
     private let config: CalendarDatePickerConfiguration
 
     public init(
         selection: Binding<Date>,
         keyPeriod: Binding<Fixed<Month>>,
-        config: CalendarDatePickerConfiguration = .init()
+        prepare: ((Fixed<Month>) -> Void)? = nil,
+        config: CalendarDatePickerConfiguration = .init(),
     ) {
         self.config = config
+        self.prepare = prepare
         _selection = selection
         _keyPeriod = keyPeriod
     }
@@ -45,7 +49,7 @@ public struct CalendarDatePicker: View {
                     VStack(spacing: config.verticalSpacing) {
                         components.weekdaySymbols(highlightedIndex, config)
 
-                        CalendarPager($keyPeriod) { period in
+                        CalendarPager($keyPeriod, prepare: prepare) { period in
                             components.page($selection, period, config)
                                 .frame(minWidth: geometry.size.width)
                         }
