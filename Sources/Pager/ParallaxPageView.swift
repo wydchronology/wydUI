@@ -30,7 +30,10 @@ public struct ParallaxPageViewConfiguration: Sendable {
     public var parallaxAmount: CGFloat
 
     /// Background color visible during page transitions (default: .black)
-    public var backgroundColor: UIColor
+    public var backgroundColor: UIColor = .black
+
+    /// Color of the shadow applied to the top page during transitions (default: .black)
+    public var shadowColor: UIColor = .black
 
     public enum AnimationStyle: Sendable {
         case snappy
@@ -45,7 +48,8 @@ public struct ParallaxPageViewConfiguration: Sendable {
         animationStyle: AnimationStyle = .snappy,
         swipeEdgeThreshold: CGFloat = 0.3,
         parallaxAmount: CGFloat = 0.25,
-        backgroundColor: UIColor = .black
+        backgroundColor: UIColor = .black,
+        shadowColor _: UIColor = .black
     ) {
         self.animationDuration = animationDuration
         self.minimumAlpha = minimumAlpha
@@ -308,7 +312,7 @@ private final class ParallaxViewController: UIViewController {
             vc.view.isHidden = index != currentIndex
         }
 
-        controllers[currentIndex].view.applyShadow(color: configuration.backgroundColor)
+        controllers[currentIndex].view.applyShadow(color: configuration.shadowColor)
         reorderViewStack()
     }
 
@@ -490,7 +494,7 @@ private final class ParallaxViewController: UIViewController {
         }
 
         [currentVC, targetVC].forEach { $0.view.clearShadow() }
-        rightVC.view.applyShadow(color: configuration.backgroundColor)
+        rightVC.view.applyShadow(color: configuration.shadowColor)
 
         // Apply mask to top page during transition (evaluated in SwiftUI context)
         applyTransitionMask(toPageAt: rightIndex)
@@ -583,7 +587,7 @@ private final class ParallaxViewController: UIViewController {
             vc.view.alpha = 1.0
             vc.view.clearShadow()
         }
-        controllers[activeIndex].view.applyShadow(color: configuration.backgroundColor)
+        controllers[activeIndex].view.applyShadow(color: configuration.shadowColor)
         reorderViewStack()
     }
 
