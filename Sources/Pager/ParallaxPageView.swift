@@ -210,7 +210,10 @@ private struct SwipePagerRepresentable: UIViewControllerRepresentable {
         )
         vc.onIndexChange = { newIndex in
             guard newIndex != page else { return }
-            page = newIndex
+            // Defer to avoid "Publishing changes from within view updates" warning
+            DispatchQueue.main.async {
+                page = newIndex
+            }
         }
         return vc
     }
@@ -505,12 +508,18 @@ private final class ParallaxViewController: UIViewController {
 
     private func applyTransitionMask(toPageAt index: Int) {
         guard maskStates.indices.contains(index) else { return }
-        maskStates[index].isApplied = true
+        // Defer to avoid "Publishing changes from within view updates" warning
+        DispatchQueue.main.async {
+            self.maskStates[index].isApplied = true
+        }
     }
 
     private func removeAllTransitionMasks() {
-        for state in maskStates {
-            state.isApplied = false
+        // Defer to avoid "Publishing changes from within view updates" warning
+        DispatchQueue.main.async {
+            for state in self.maskStates {
+                state.isApplied = false
+            }
         }
     }
 
