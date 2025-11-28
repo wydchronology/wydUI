@@ -29,6 +29,9 @@ public struct ParallaxPageViewConfiguration: Sendable {
     /// How much the underneath page moves during parallax as fraction of width (default: 0.3)
     public var parallaxAmount: CGFloat
 
+    /// Color of the shadow applied to the top page during transitions (default: .black)
+    public var shadowColor: UIColor = .black
+
     public enum AnimationStyle: Sendable {
         case snappy
         case easeOut
@@ -244,6 +247,9 @@ private final class ParallaxViewController: UIViewController {
     /// Mask states for each page, toggled during transitions.
     private let maskStates: [TransitionMaskState]
 
+    /// Dimming overlay views for each page (black overlay that moves with the page).
+    private var dimmingOverlays: [UIView] = []
+
     private(set) var currentIndex: Int = 0 {
         didSet { if currentIndex != oldValue { onIndexChange?(currentIndex) } }
     }
@@ -288,7 +294,7 @@ private final class ParallaxViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = .systemBackground
         setupPages()
         setupGesture()
     }
@@ -301,9 +307,19 @@ private final class ParallaxViewController: UIViewController {
         for (index, vc) in controllers.enumerated() {
             embed(vc)
             vc.view.isHidden = index != currentIndex
+
+            // Add dimming overlay that moves with the page
+            let dimmingView = UIView()
+            dimmingView.backgroundColor = .black
+            dimmingView.alpha = 0
+            dimmingView.frame = vc.view.bounds
+            dimmingView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            dimmingView.isUserInteractionEnabled = false
+            vc.view.addSubview(dimmingView)
+            dimmingOverlays.append(dimmingView)
         }
 
-        controllers[currentIndex].view.applyShadow()
+        controllers[currentIndex].view.applyShadow(color: configuration.shadowColor)
         reorderViewStack()
     }
 
@@ -326,19 +342,34 @@ private final class ParallaxViewController: UIViewController {
         }
     }
 
-    // MARK: Dimming (alpha-based)
+    // MARK: Dimming (overlay-based)
 
-    private func setLeftPageAlpha(_ alpha: CGFloat) {
-        guard let state = interaction else { return }
-        controllers[state.leftIndex].view.alpha = alpha
+    /// Sets the dimming overlay opacity for the left page.
+    /// The overlay is black and moves with the page, creating the dimming illusion.
+    private func setLeftPageDimming(_ dimmingAmount: CGFloat) {
+        guard let state = interaction,
+              dimmingOverlays.indices.contains(state.leftIndex) else { return }
+        dimmingOverlays[state.leftIndex].alpha = dimmingAmount
     }
 
-    private func alphaForProgress(_ progress: CGFloat, direction: SwipeDirection) -> CGFloat {
+    /// Calculates how much dimming (overlay opacity) to apply based on progress.
+    /// 0 = no dimming (overlay invisible), (1 - minimumAlpha) = max dimming
+    private func dimmingForProgress(_ progress: CGFloat, direction: SwipeDirection) -> CGFloat {
+        let maxDimming = 1 - minimumAlpha // e.g., 0.6 when minimumAlpha is 0.4
         switch direction {
         case .left:
-            return 1 - (1 - minimumAlpha) * progress
+            // Swiping left (going to next page): left page gets dimmed
+            return maxDimming * progress
         case .right:
-            return minimumAlpha + (1 - minimumAlpha) * progress
+            // Swiping right (going to previous page): left page gets un-dimmed
+            return maxDimming * (1 - progress)
+        }
+    }
+
+    /// Resets all dimming overlays to invisible.
+    private func resetAllDimming() {
+        for overlay in dimmingOverlays {
+            overlay.alpha = 0
         }
     }
 
@@ -376,7 +407,7 @@ private final class ParallaxViewController: UIViewController {
         let anim = UIViewPropertyAnimator(duration: animationDuration, timingParameters: timingParameters)
         anim.addAnimations {
             self.applyFinalTransforms(currentVC: currentVC, targetVC: targetVC, direction: direction, width: width)
-            self.setLeftPageAlpha(self.alphaForProgress(1, direction: direction))
+            self.setLeftPageDimming(self.dimmingForProgress(1, direction: direction))
         }
         anim.addCompletion { _ in
             self.finishTransition(toIndex: index)
@@ -420,7 +451,7 @@ private final class ParallaxViewController: UIViewController {
 
         let progress = min(max(abs(translation) / width, 0), 1)
         animator?.fractionComplete = progress
-        setLeftPageAlpha(alphaForProgress(progress, direction: state.direction))
+        setLeftPageDimming(dimmingForProgress(progress, direction: state.direction))
     }
 
     private func determineSwipeTarget(translation: CGFloat, width: CGFloat) -> (SwipeDirection, Int)? {
@@ -472,8 +503,11 @@ private final class ParallaxViewController: UIViewController {
         leftVC.view.layer.zPosition = 0
         rightVC.view.layer.zPosition = 1
 
-        leftVC.view.alpha = direction == .left ? 1 : minimumAlpha
-        rightVC.view.alpha = 1
+        // Set initial dimming on the left page (overlay moves with the page)
+        let initialDimming: CGFloat = direction == .left ? 0 : (1 - minimumAlpha)
+        if dimmingOverlays.indices.contains(leftIndex) {
+            dimmingOverlays[leftIndex].alpha = initialDimming
+        }
 
         switch direction {
         case .left:
@@ -526,15 +560,15 @@ private final class ParallaxViewController: UIViewController {
 
         animator.isReversed = !shouldComplete
 
-        let finalAlpha = shouldComplete
-            ? alphaForProgress(1, direction: state.direction)
-            : alphaForProgress(0, direction: state.direction)
+        let finalDimming = shouldComplete
+            ? dimmingForProgress(1, direction: state.direction)
+            : dimmingForProgress(0, direction: state.direction)
 
         let remaining = shouldComplete ? 1 - progress : progress
         let duration = animationDuration * max(0.2, remaining)
 
         UIView.animate(withDuration: duration, delay: 0, options: .curveEaseOut) {
-            self.setLeftPageAlpha(finalAlpha)
+            self.setLeftPageDimming(finalDimming)
         }
 
         animator.continueAnimation(withTimingParameters: nil, durationFactor: max(0.2, remaining))
@@ -571,14 +605,14 @@ private final class ParallaxViewController: UIViewController {
 
     private func resetAllViews(activeIndex: Int) {
         removeAllTransitionMasks()
+        resetAllDimming()
 
         for (idx, vc) in controllers.enumerated() {
             vc.view.isHidden = idx != activeIndex
             vc.view.transform = .identity
-            vc.view.alpha = 1.0
             vc.view.clearShadow()
         }
-        controllers[activeIndex].view.applyShadow()
+        controllers[activeIndex].view.applyShadow(color: configuration.shadowColor)
         reorderViewStack()
     }
 
@@ -598,11 +632,16 @@ private final class ParallaxViewController: UIViewController {
 // MARK: - UIView Helpers
 
 private extension UIView {
-    func applyShadow() {
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.25
-        layer.shadowRadius = 10
-        layer.shadowOffset = .zero
+    func applyShadow(
+        color: UIColor = .black,
+        opacity: Float = 0.25,
+        radius: CGFloat = 10,
+        offset: CGSize = .zero
+    ) {
+        layer.shadowColor = color.cgColor
+        layer.shadowOpacity = opacity
+        layer.shadowRadius = radius
+        layer.shadowOffset = offset
     }
 
     func clearShadow() {
