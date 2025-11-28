@@ -29,8 +29,8 @@ public struct ParallaxPageViewConfiguration: Sendable {
     /// How much the underneath page moves during parallax as fraction of width (default: 0.3)
     public var parallaxAmount: CGFloat
 
-    /// Background color visible during page transitions (default: .black)
-    public var backgroundColor: UIColor = .black
+    /// Background color visible during page transitions (default: .clear)
+    public var backgroundColor: UIColor = .clear
 
     /// Color of the shadow applied to the top page during transitions (default: .black)
     public var shadowColor: UIColor = .black
@@ -44,12 +44,12 @@ public struct ParallaxPageViewConfiguration: Sendable {
 
     public init(
         animationDuration: CGFloat = 0.35,
-        minimumAlpha: CGFloat = 0.4,
+        minimumAlpha: CGFloat = 0.1,
         animationStyle: AnimationStyle = .snappy,
         swipeEdgeThreshold: CGFloat = 0.3,
         parallaxAmount: CGFloat = 0.25,
         backgroundColor: UIColor = .black,
-        shadowColor _: UIColor = .black
+        shadowColor: UIColor = .black
     ) {
         self.animationDuration = animationDuration
         self.minimumAlpha = minimumAlpha
@@ -57,6 +57,7 @@ public struct ParallaxPageViewConfiguration: Sendable {
         self.swipeEdgeThreshold = swipeEdgeThreshold
         self.parallaxAmount = parallaxAmount
         self.backgroundColor = backgroundColor
+        self.shadowColor = shadowColor
     }
 
     public static let `default` = ParallaxPageViewConfiguration()
