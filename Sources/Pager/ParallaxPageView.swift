@@ -227,7 +227,7 @@ private struct SwipePagerRepresentable: UIViewControllerRepresentable {
 
 // MARK: - View Controller
 
-private final class ParallaxViewController: UIViewController {
+private final class ParallaxViewController: UIViewController, UIGestureRecognizerDelegate {
     // MARK: Configuration
 
     var configuration: ParallaxPageViewConfiguration
@@ -322,6 +322,7 @@ private final class ParallaxViewController: UIViewController {
 
     private func setupGesture() {
         panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        panGesture.delegate = self
         view.addGestureRecognizer(panGesture)
     }
 
@@ -337,6 +338,32 @@ private final class ParallaxViewController: UIViewController {
         for (idx, vc) in controllers.enumerated() {
             vc.view.layer.zPosition = CGFloat(idx)
         }
+    }
+    
+    // MARK: UIGestureRecognizerDelegate
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer == panGesture else { return true }
+        
+        // 1. Direction Check
+        // If the swipe has more vertical velocity than horizontal, it's likely a scroll
+        // in the content (e.g. List). We yield to the child view.
+        let velocity = panGesture.velocity(in: view)
+        if abs(velocity.y) > abs(velocity.x) {
+            return false
+        }
+        
+        // 2. Edge Threshold Check
+        // We only want the pager to activate if the swipe starts from the edge.
+        // This leaves the middle of the screen free for content gestures (like cell swipe actions).
+        let location = panGesture.location(in: view)
+        let width = view.bounds.width
+        let threshold = width * swipeEdgeThreshold
+        
+        let isLeftEdge = location.x < threshold
+        let isRightEdge = location.x > (width - threshold)
+        
+        return isLeftEdge || isRightEdge
     }
 
     // MARK: Dimming (alpha-based)
