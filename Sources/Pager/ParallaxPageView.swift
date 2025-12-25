@@ -363,7 +363,15 @@ private final class ParallaxViewController: UIViewController, UIGestureRecognize
         let isLeftEdge = location.x < threshold
         let isRightEdge = location.x > (width - threshold)
         
-        return isLeftEdge || isRightEdge
+        if isLeftEdge {
+            return currentIndex > 0
+        }
+        
+        if isRightEdge {
+            return currentIndex < controllers.count - 1
+        }
+        
+        return false
     }
 
     // MARK: Dimming (alpha-based)
